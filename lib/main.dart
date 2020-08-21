@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:validators/validators.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -7,260 +9,75 @@ import 'package:url_launcher/url_launcher.dart';
 void main() {
 //  runApp(MyApp());
 //  runApp(MyApp2());
-  runApp(MyApp3());
+//  runApp(MyApp3());
+  runApp(MyApp4());
 }
 
-class User {
-  User() {
-    this.email = "";
-    this.password = "";
-    this.gender = "male";
-    this.agreePolicy = false;
-    this.receiveEmail = false;
-  }
-
-  String email;
-  String password;
-  String gender;
-  bool agreePolicy;
-  bool receiveEmail;
-}
-
-class MyApp3 extends StatelessWidget {
+class MyApp4 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final String appTitle = "Helpdesk";
-
     return MaterialApp(
-      title: appTitle,
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(appTitle),
-        ),
-        body: CumtomForm(),
-      ),
+      title: 'CNMI Login',
+//      debugShowCheckedModeBanner: false,
+      home: MainPage(),
+      theme: ThemeData(accentColor: Colors.white70),
     );
   }
 }
 
-class CumtomForm extends StatefulWidget {
+class MainPage extends StatefulWidget {
   @override
-  _CumtomFormState createState() => _CumtomFormState();
+  _MainPageState createState() => _MainPageState();
 }
 
-class _CumtomFormState extends State<CumtomForm> {
-  final _formKey = GlobalKey<FormState>();
-  User user = new User();
+class _MainPageState extends State<MainPage> {
+  SharedPreferences sharedPreferences;
+
+  @override
+  void initState() {
+    super.initState();
+    checkLoginStatus();
+  }
+
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") == null) {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
+          (Route<dynamic> route) => false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(20),
-      child: Form(
-          key: _formKey,
-          child: ListView(
-            children: <Widget>[
-              TextFormField(
-                decoration: _buildInputDecoration(
-                    label: 'Email',
-                    hint: 'example@gmail.com',
-                    icon: Icons.email),
-                keyboardType: TextInputType.emailAddress,
-                validator: _validateEmail,
-                onSaved: (String value) {
-                  user.email = value;
-                },
-              ),
-              TextFormField(
-                decoration:
-                    _buildInputDecoration(label: 'Password', icon: Icons.lock),
-                obscureText: true,
-                validator: _validatePassword,
-                onSaved: (String value) {
-                  user.password = value;
-                },
-              ),
-              _buildGenderForm(),
-              _buildReciveEmailForm(),
-              _buildAgreePolicyForm(),
-              _buildSubmitButton(),
-            ],
-          )),
-    );
-  }
-
-  InputDecoration _buildInputDecoration(
-      {String label, String hint, IconData icon}) {
-    return InputDecoration(labelText: label, hintText: hint, icon: Icon(icon));
-  }
-
-  Widget _buildAgreePolicyForm() {
-    return Container(
-      alignment: Alignment.center,
-      margin: EdgeInsets.only(top: 32),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Checkbox(
-            value: user.agreePolicy,
-            activeColor: Colors.blue,
-            onChanged: (value) {
-              setState(() {
-                user.agreePolicy = value;
-              });
-            },
-          ),
-          Text("I Agree the "),
-          GestureDetector(
-            onTap: _launchURL,
-            child: Text(
-              'Pivacy Policy',
-              style: TextStyle(
-                  color: Colors.blue, decoration: TextDecoration.underline),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReciveEmailForm() {
-    return Row(
-      children: <Widget>[
-        Text(
-          "Receive Email",
-          style: TextStyle(fontSize: 16),
-        ),
-        Switch(
-            activeColor: Colors.blue,
-            value: user.receiveEmail,
-            onChanged: (select) {
-              setState(() {
-                user.receiveEmail = select;
-              });
-            }),
-      ],
-    );
-  }
-
-  Widget _buildGenderForm() {
-    final Color activeColor = Colors.blue;
-    return Container(
-      margin: EdgeInsets.only(top: 12),
-      child: Row(
-        children: <Widget>[
-          Text(
-            "Gender:",
-            style: TextStyle(fontSize: 16),
-          ),
-          Radio(
-              activeColor: activeColor,
-              value: "male",
-              groupValue: user.gender,
-              onChanged: _handleRadioValue),
-          Text("Male"),
-          Radio(
-              activeColor: activeColor,
-              value: "female",
-              groupValue: user.gender,
-              onChanged: _handleRadioValue),
-          Text("Female"),
-        ],
-      ),
-    );
-  }
-
-  void _handleRadioValue(value) {
-    print('value: ${value}');
-    setState(() {
-      user.gender = value;
-    });
-  }
-
-  Widget _buildSubmitButton() {
-    return Container(
-      width: MediaQuery.of(context).size.width,
-      margin: EdgeInsets.only(top: 4),
-      child: RaisedButton(
-        color: Colors.blue,
-        onPressed: _submit,
-        child: Text(
-          "Submit",
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "CNMI HelpDesk",
           style: TextStyle(color: Colors.white),
         ),
-      ),
-    );
-  }
-
-  void _submit() {
-    if (this._formKey.currentState.validate()) {
-      if (user.agreePolicy == false) {
-        showAlertDialog();
-      } else {
-        _formKey.currentState.save();
-
-        print("Email: ${user.email}");
-        print("Password: ${user.password}");
-        print("Gender: ${user.gender}");
-        print("Receive Email: ${user.receiveEmail}");
-        print("Agree Policy: ${user.agreePolicy}");
-      }
-    }
-  }
-
-  void showAlertDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Title"),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text("detail"),
-                Text("detail"),
-                Text("detail"),
-                Icon(Icons.directions_walk)
-              ],
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              sharedPreferences.clear();
+              sharedPreferences.commit();
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => LoginScreen()),
+                  (Route<dynamic> route) => false);
+            },
+            child: Text(
+              "Logout",
+              style: TextStyle(color: Colors.white),
             ),
           ),
-          actions: <Widget>[
-            IconButton(
-                icon: Icon(Icons.cake), color: Colors.red, onPressed: null),
-            FlatButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("Close"))
-          ],
-        );
-      },
+        ],
+      ),
+      body: Center(
+        child: Text("Main Page"),
+      ),
+      drawer: Drawer(),
     );
-  }
-
-  String _validateEmail(String value) {
-    if (value.isEmpty) {
-      return "The Email is Empty.";
-    }
-    if (!isEmail(value)) {
-      return "The Email must be a valid email.";
-    }
-  }
-
-  String _validatePassword(String value) {
-    if (value.length < 8) {
-      return "The Password must be at least 8 charactors.";
-    }
-  }
-
-  _launchURL() async {
-    const url = 'https://flutter.dev';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }
 
