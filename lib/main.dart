@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -19,67 +21,95 @@ class MyApp4 extends StatelessWidget {
     return MaterialApp(
       title: 'CNMI Login',
 //      debugShowCheckedModeBanner: false,
-      home: MainPage(),
-      theme: ThemeData(accentColor: Colors.white70),
+      theme: ThemeData(accentColor: Colors.deepPurple),
+      home: IssuesClosed(),
     );
   }
 }
 
-class MainPage extends StatefulWidget {
-  @override
-  _MainPageState createState() => _MainPageState();
-}
-
-class _MainPageState extends State<MainPage> {
-  SharedPreferences sharedPreferences;
-
-  @override
-  void initState() {
-    super.initState();
-    checkLoginStatus();
-  }
-
-  checkLoginStatus() async {
-    sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-          (Route<dynamic> route) => false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          "CNMI HelpDesk",
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: <Widget>[
-          FlatButton(
-            onPressed: () {
-              sharedPreferences.clear();
-              sharedPreferences.commit();
-              Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => LoginScreen()),
-                  (Route<dynamic> route) => false);
-            },
-            child: Text(
-              "Logout",
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
-      body: Center(
-        child: Text("Main Page"),
-      ),
-      drawer: Drawer(),
-    );
-  }
-}
+//class MainPage extends StatefulWidget {
+//  @override
+//  _MainPageState createState() => _MainPageState();
+//}
+//
+//class _MainPageState extends State<MainPage> {
+//  SharedPreferences sharedPreferences;
+//  List<String> userData = new List();
+//
+//  Future getData() async {}
+//
+//  @override
+//  void initState() {
+//    super.initState();
+//    checkLoginStatus();
+//    getData();
+//  }
+//
+//  checkLoginStatus() async {
+//    sharedPreferences = await SharedPreferences.getInstance();
+//    if (sharedPreferences.getString("token") == null) {
+//      Navigator.of(context).pushAndRemoveUntil(
+//          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
+//          (Route<dynamic> route) => false);
+//    }
+//  }
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return Scaffold(
+//      appBar: AppBar(
+//        title: Text(
+//          "CNMI HelpDesk",
+//          style: TextStyle(color: Colors.white),
+//        ),
+//        actions: <Widget>[
+//          IconButton(
+//            icon: Icon(Icons.exit_to_app),
+//            onPressed: () {
+//              sharedPreferences.clear();
+//              sharedPreferences.commit();
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => LoginScreen()),
+//                  (Route<dynamic> route) => false);
+//            },
+//          ),
+//        ],
+//      ),
+//      body: Center(
+//        child: Container(
+//          decoration: BoxDecoration(
+//            image: DecorationImage(
+//              image: AssetImage("assets/blue-bg.jpg"),
+//              fit: BoxFit.cover,
+//            ),
+//          ),
+//          child: _listSection(),
+//        ),
+//      ),
+//      drawer: Drawer(),
+//    );
+//  }
+//
+//  Widget _listSection() => ListView.builder(
+//      itemCount: null,
+//      itemBuilder: (context, index) {
+//        if (index == 0) {
+//          return _headerImageSection();
+//        }
+//        return Card(
+//          child: Text("CNMI Helpdesk"),
+//        );
+//      });
+//
+//  Widget _headerImageSection() => Padding(
+//        padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
+//        child: Image.asset(
+//          "assets/header_main.png",
+//          height: 100,
+//        ),
+//      );
+//}
 
 // Todo TabBar
 class Choice {

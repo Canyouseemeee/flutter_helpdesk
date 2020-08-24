@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
 import 'package:flutter_helpdesk/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:validators/validators.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -106,16 +108,19 @@ class _LoginScreenState extends State<LoginScreen> {
     Map data = {'email': email, 'password': password};
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var response = await http.post("http://127.0.0.1:8000/api/login", body: data);
+    var response =
+        await http.post("http://10.57.34.148:8000/api/login", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
-      setState(() {
-        _isLoading = false;
+      if (jsonData != null) {
+        setState(() {
+          _isLoading = false;
+        });
         sharedPreferences.setString("token", jsonData['token']);
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => MainPage()),
+            MaterialPageRoute(builder: (BuildContext context) => IssuesClosed()),
             (Route<dynamic> route) => false);
-      });
+      }
     } else {
       print(response.body);
     }
@@ -128,10 +133,12 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20.0),
         child: RaisedButton(
           color: Colors.blueAccent,
-          onPressed: () {
-            setState(() {
-              _isLoading = true;
-            });
+          onPressed: emailController.text == "" || passwordController.text == "" ? null : () {
+            _submit();
+//            setState(() {
+//              _isLoading = true;
+//            });
+
             signIn(emailController.text, passwordController.text);
           },
           shape: RoundedRectangleBorder(
