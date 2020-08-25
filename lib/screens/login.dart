@@ -118,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         sharedPreferences.setString("token", jsonData['token']);
         Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => IssuesClosed()),
+            MaterialPageRoute(builder: (BuildContext context) => MainPage()),
             (Route<dynamic> route) => false);
       }
     } else {

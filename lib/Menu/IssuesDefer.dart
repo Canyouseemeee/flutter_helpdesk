@@ -1,25 +1,28 @@
 import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
-import 'package:buddhist_datetime_dateformat/buddhist_datetime_dateformat.dart';
-import 'package:flutter_helpdesk/services/Jsondata.dart';
-import 'package:flutter_helpdesk/Models/Closed.dart';
 import 'package:flutter/material.dart';
+import 'package:buddhist_datetime_dateformat/buddhist_datetime_dateformat.dart';
+import 'package:flutter_helpdesk/Models/Defer.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class IssuesClosed extends StatefulWidget {
+import '../main.dart';
+import 'IssuesClosed.dart';
+
+class IssuesDefer extends StatefulWidget {
   @override
-  _IssuesClosedState createState() => _IssuesClosedState();
+  _IssuesDeferState createState() => _IssuesDeferState();
 }
 
-class _IssuesClosedState extends State<IssuesClosed>
-{
-  var formatter = DateFormat.yMMMd().add_jm();
+class _IssuesDeferState extends State<IssuesDefer> {
   SharedPreferences sharedPreferences;
-  int _currentIndex = 1;
-  List<Closed> _closed;
+  int _currentIndex = 2;
+  List<Defer> _defer;
   bool _loading;
+  var formatter = DateFormat.yMd().add_jm();
 
 
   @override
@@ -27,12 +30,13 @@ class _IssuesClosedState extends State<IssuesClosed>
     super.initState();
     checkLoginStatus();
     _loading = true;
-    Jsondata.getClosed().then((closed) {
+    Jsondata.getDefer().then((defer) {
       setState(() {
-        _closed = closed;
+        _defer = defer;
         _loading = false;
       });
     });
+
   }
 
   checkLoginStatus() async {
@@ -48,7 +52,7 @@ class _IssuesClosedState extends State<IssuesClosed>
   Widget build(BuildContext context) {
     return Scaffold(
 //      appBar: AppBar(
-//        title: Text(_loading ? 'Loading...' : "Closed"),
+//        title: Text(_loading ? 'Loading...' :"Defer"),
 //        actions: <Widget>[
 //          IconButton(
 //            icon: Icon(Icons.exit_to_app),
@@ -117,13 +121,12 @@ class _IssuesClosedState extends State<IssuesClosed>
 //      ),
     );
   }
-
   Widget _showJsondata() => new RefreshIndicator(
     child: ListView.builder(
       scrollDirection: Axis.vertical,
-      itemCount: null == _closed? 0 : _closed.length,
+      itemCount: null == _defer ? 0 : _defer.length,
       itemBuilder: (context, index) {
-        Closed closed = _closed[index];
+        Defer defer = _defer[index];
         return Card(
           child: Container(
             child: Row(
@@ -131,13 +134,13 @@ class _IssuesClosedState extends State<IssuesClosed>
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(closed.issuesid.toString()),
-                    Text(closed.trackName),
-                    Text(closed.issName),
-                    Text(closed.ispName),
-                    Text(closed.users),
-                    Text(closed.subject),
-                    Text(formatter.formatInBuddhistCalendarThai(closed.updatedAt)),
+                    Text(defer.issuesid.toString()),
+                    Text(defer.trackName),
+                    Text(defer.issName),
+                    Text(defer.ispName),
+                    Text(defer.users),
+                    Text(defer.subject),
+                    Text(formatter.formatInBuddhistCalendarThai(defer.updatedAt)),
                   ],
                 ),
               ],
@@ -156,9 +159,9 @@ class _IssuesClosedState extends State<IssuesClosed>
       completer.complete();
       setState(() {
         _loading = true;
-        Jsondata.getClosed().then((closed) {
+        Jsondata.getDefer().then((defer) {
           setState(() {
-            _closed = closed;
+            _defer = defer;
             _loading = false;
           });
         });

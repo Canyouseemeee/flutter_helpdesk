@@ -2,315 +2,276 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
+import 'package:flutter_helpdesk/Menu/IssuesDefer.dart';
+import 'package:flutter_helpdesk/Menu/IssuesNew.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:transparent_image/transparent_image.dart';
-import 'package:validators/validators.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 void main() {
 //  runApp(MyApp());
-//  runApp(MyApp2());
-//  runApp(MyApp3());
-  runApp(MyApp4());
+  Intl.defaultLocale = 'th';
+  initializeDateFormatting();
+  runApp(
+    MyApp4(),
+  );
 }
 
 class MyApp4 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CNMI Login',
+
+      debugShowCheckedModeBanner: false,
+      title: 'CNMI',
 //      debugShowCheckedModeBanner: false,
       theme: ThemeData(accentColor: Colors.deepPurple),
-      home: IssuesClosed(),
+      home: MainPage(),
     );
   }
 }
 
-//class MainPage extends StatefulWidget {
-//  @override
-//  _MainPageState createState() => _MainPageState();
-//}
-//
-//class _MainPageState extends State<MainPage> {
-//  SharedPreferences sharedPreferences;
-//  List<String> userData = new List();
-//
-//  Future getData() async {}
-//
-//  @override
-//  void initState() {
-//    super.initState();
-//    checkLoginStatus();
-//    getData();
-//  }
-//
-//  checkLoginStatus() async {
-//    sharedPreferences = await SharedPreferences.getInstance();
-//    if (sharedPreferences.getString("token") == null) {
-//      Navigator.of(context).pushAndRemoveUntil(
-//          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-//          (Route<dynamic> route) => false);
-//    }
-//  }
-//
-//  @override
-//  Widget build(BuildContext context) {
-//    return Scaffold(
-//      appBar: AppBar(
-//        title: Text(
-//          "CNMI HelpDesk",
-//          style: TextStyle(color: Colors.white),
-//        ),
-//        actions: <Widget>[
-//          IconButton(
-//            icon: Icon(Icons.exit_to_app),
-//            onPressed: () {
-//              sharedPreferences.clear();
-//              sharedPreferences.commit();
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => LoginScreen()),
-//                  (Route<dynamic> route) => false);
-//            },
-//          ),
-//        ],
-//      ),
-//      body: Center(
-//        child: Container(
-//          decoration: BoxDecoration(
-//            image: DecorationImage(
-//              image: AssetImage("assets/blue-bg.jpg"),
-//              fit: BoxFit.cover,
-//            ),
-//          ),
-//          child: _listSection(),
-//        ),
-//      ),
-//      drawer: Drawer(),
-//    );
-//  }
-//
-//  Widget _listSection() => ListView.builder(
-//      itemCount: null,
-//      itemBuilder: (context, index) {
-//        if (index == 0) {
-//          return _headerImageSection();
-//        }
-//        return Card(
-//          child: Text("CNMI Helpdesk"),
-//        );
-//      });
-//
-//  Widget _headerImageSection() => Padding(
-//        padding: EdgeInsets.fromLTRB(20, 10, 20, 10),
-//        child: Image.asset(
-//          "assets/header_main.png",
-//          height: 100,
-//        ),
-//      );
-//}
-
-// Todo TabBar
-class Choice {
-  final String title;
-  final IconData icon;
-
-  const Choice({this.title, this.icon});
+class MainPage extends StatefulWidget {
+  @override
+  _MainPageState createState() => _MainPageState();
 }
 
-const List<Choice> choices = const <Choice>[
-  const Choice(title: 'Car', icon: Icons.directions_car),
-  const Choice(title: 'Bicycle', icon: Icons.directions_bike),
-  const Choice(title: 'Boat', icon: Icons.directions_boat),
-  const Choice(title: 'Bus', icon: Icons.directions_bus),
-  const Choice(title: 'Train', icon: Icons.directions_railway),
-  const Choice(title: 'Walk', icon: Icons.directions_walk),
-];
+class _MainPageState extends State<MainPage> {
+  SharedPreferences sharedPreferences;
+  int _currentIndex = 0;
+  var formatter = DateFormat.yMd().add_jm();
 
-class MyApp2 extends StatelessWidget {
+
+//  MainPage one = new MainPage();
+  IssuesNew news = new IssuesNew();
+  IssuesDefer defer = new IssuesDefer();
+  IssuesClosed closed = new IssuesClosed();
+  List<Widget> pages;
+  Widget currantpage;
+
+  @override
+  void initState() {
+    super.initState();
+    checkLoginStatus();
+    pages = [news, defer, closed];
+    currantpage = news;
+  }
+
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") == null) {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
+          (Route<dynamic> route) => false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final String appTitle = "CNMI";
-    return MaterialApp(
-        title: appTitle,
-        home: DefaultTabController(
-          length: choices.length,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(appTitle),
-//              bottom: TabBar(
-//                isScrollable: true,
-//                tabs: choices.map((Choice choice) {
-//                  return Tab(
-////                  text: choice.title,
-////                  icon: Icon(choice.icon),
-//                    child: Row(
-//                      children: <Widget>[
-//                        Icon(choice.icon),
-//                        Container(
-//                          margin: EdgeInsets.only(left: 8),
-//                          child: Text(choice.title),
-//                        )
-//                      ],
-//                    ),
-//                  );
-//                }).toList(),
-//              ),
-            ),
-            body: TabBarView(
-                children: choices.map((Choice choice) {
-              return Center(
-                child: Text(choice.title),
-              );
-            }).toList()),
-            bottomNavigationBar: SafeArea(
-              child: Container(
-                color: Theme.of(context).primaryColor,
-                child: TabBar(
-                  isScrollable: true,
-                  tabs: choices.map((Choice choice) {
-                    return Tab(
-                      text: choice.title,
-                      icon: Icon(choice.icon),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("CNMI Helpdesk"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.exit_to_app),
+            onPressed: () {
+              sharedPreferences.clear();
+              sharedPreferences.commit();
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                      builder: (BuildContext context) => LoginScreen()),
+                  (Route<dynamic> route) => false);
+            },
           ),
-        ));
+        ],
+      ),
+      body: currantpage,
+//      callPage(_currentIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        items: [
+//          BottomNavigationBarItem(
+//              icon: Icon(Icons.home),
+//              title: Text("Dashboard"),
+//              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+              title: Text("New"),
+              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.camera),
+              title: Text("Defer"),
+              backgroundColor: Colors.blue),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              title: Text("Closed"),
+              backgroundColor: Colors.blue),
+        ],
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+            currantpage = pages[index];
+//            if (_currentIndex == 0) {
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => MainPage()),
+//                      (Route<dynamic> route) => false);
+//            }
+//            if (_currentIndex == 1) {
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => IssuesNew()),
+//                      (Route<dynamic> route) => false);
+//            }
+//            if (_currentIndex == 2) {
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => IssuesDefer()),
+//                      (Route<dynamic> route) => false);
+//            }
+//            if (_currentIndex == 3) {
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => IssuesClosed()),
+//                      (Route<dynamic> route) => false);
+//            }
+          });
+        },
+      ),
+    );
   }
 }
 
 // Todo Image
-class MyApp extends StatelessWidget {
-  var _title = "CNMI Workshop Layout";
+//class MyApp extends StatelessWidget {
+//  var _title = "CNMI Workshop Layout";
+//
+//  @override
+//  Widget build(BuildContext context) {
+//    return MaterialApp(
+//      title: _title,
+//      home: Scaffold(
+//        appBar: AppBar(
+//          title: Text(_title),
+//        ),
+//        body: ListView(
+//          children: <Widget>[
+//            headerSection,
+//            titleSection,
+//            buttonSection,
+//            courseSection
+//          ],
+//        ),
+//      ),
+//    );
+//  }
+//}
+//
+//Widget headerSection =
+//    Image.network("https://pbs.twimg.com/media/EOGM6S0VUAALbci.jpg");
+//
+//Widget titleSection = Padding(
+//  padding: EdgeInsets.all(50),
+//  child: Row(
+//    children: <Widget>[
+//      Expanded(
+//        child: Column(
+//          crossAxisAlignment: CrossAxisAlignment.start,
+//          children: <Widget>[
+//            Text(
+//              "CNMI Helpdesk",
+//              style: TextStyle(fontWeight: FontWeight.bold),
+//            ),
+//            Text(
+//              "CNMI RAMAMAHIDON",
+//              style: TextStyle(color: Colors.grey[500]),
+//            )
+//          ],
+//        ),
+//      ),
+//      Icon(
+//        Icons.thumb_up,
+//        color: Colors.blue,
+//      ),
+//      Container(
+//        margin: EdgeInsets.only(left: 8),
+//        child: Text("99"),
+//      )
+//    ],
+//  ),
+//);
+//
+//Widget buttonSection = Row(
+//  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//  children: <Widget>[
+//    _buildButtonColumn(icon: Icons.thumb_up, label: "Like"),
+//    _buildButtonColumn(icon: Icons.comment, label: "Comment"),
+//    _buildButtonColumn(icon: Icons.share, label: "Share")
+//  ],
+//);
+//
+//Column _buildButtonColumn({IconData icon, String label}) {
+//  var icColor = Colors.grey.shade500;
+//  return Column(
+//    children: <Widget>[
+//      Icon(
+//        icon,
+//        color: icColor,
+//      ),
+//      Container(
+//        margin: EdgeInsets.only(top: 12),
+//        child: Text(
+//          label,
+//          style: TextStyle(
+//              fontWeight: FontWeight.bold, fontSize: 13, color: icColor),
+//        ),
+//      )
+//    ],
+//  );
+//}
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: _title,
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text(_title),
-        ),
-        body: ListView(
-          children: <Widget>[
-            headerSection,
-            titleSection,
-            buttonSection,
-            courseSection
-          ],
-        ),
-      ),
-    );
-  }
-}
+//Widget courseSection = Container(
+//  margin: EdgeInsets.only(top: 70),
+//  padding: EdgeInsets.all(8),
+//  child: Column(
+//    crossAxisAlignment: CrossAxisAlignment.start,
+//    children: <Widget>[
+//      Padding(
+//        padding: EdgeInsets.all(8),
+//        child: Text("CNMI HelpDesk RAMA"),
+//      ),
+//      Container(
+//        height: 120,
+//        child: ListView(
+//          scrollDirection: Axis.horizontal,
+//          children: <Widget>[
+//            _buildCardListView(
+//                url:
+//                    "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQ0pVCTmKZAo_hhHfE83hu1JSM9HDitC09RyQ&usqp=CAU"),
+//            _buildCardListView(
+//                url:
+//                    "https://med.mahidol.ac.th/sites/default/files/public/img/event/DSC_0073_1.JPG"),
+//            _buildCardListView(
+//                url:
+//                    "https://themomentum.co/wp-content/uploads/2018/01/Content-rama3-06.png"),
+//            _buildCardListView(
+//                url:
+//                    "https://www.ramafoundation.or.th/give/uploads/projects/thumbnail/5f27dd768f95c.jpg")
+//          ],
+//        ),
+//      )
+//    ],
+//  ),
+//);
 
-Widget headerSection =
-    Image.network("https://pbs.twimg.com/media/EOGM6S0VUAALbci.jpg");
-
-Widget titleSection = Padding(
-  padding: EdgeInsets.all(50),
-  child: Row(
-    children: <Widget>[
-      Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              "CNMI Helpdesk",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            Text(
-              "CNMI RAMAMAHIDON",
-              style: TextStyle(color: Colors.grey[500]),
-            )
-          ],
-        ),
-      ),
-      Icon(
-        Icons.thumb_up,
-        color: Colors.blue,
-      ),
-      Container(
-        margin: EdgeInsets.only(left: 8),
-        child: Text("99"),
-      )
-    ],
-  ),
-);
-
-Widget buttonSection = Row(
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: <Widget>[
-    _buildButtonColumn(icon: Icons.thumb_up, label: "Like"),
-    _buildButtonColumn(icon: Icons.comment, label: "Comment"),
-    _buildButtonColumn(icon: Icons.share, label: "Share")
-  ],
-);
-
-Column _buildButtonColumn({IconData icon, String label}) {
-  var icColor = Colors.grey.shade500;
-  return Column(
-    children: <Widget>[
-      Icon(
-        icon,
-        color: icColor,
-      ),
-      Container(
-        margin: EdgeInsets.only(top: 12),
-        child: Text(
-          label,
-          style: TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 13, color: icColor),
-        ),
-      )
-    ],
-  );
-}
-
-Widget courseSection = Container(
-  margin: EdgeInsets.only(top: 70),
-  padding: EdgeInsets.all(8),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: <Widget>[
-      Padding(
-        padding: EdgeInsets.all(8),
-        child: Text("CNMI HelpDesk RAMA"),
-      ),
-      Container(
-        height: 120,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          children: <Widget>[
-            _buildCardListView(
-                url:
-                    "https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQ0pVCTmKZAo_hhHfE83hu1JSM9HDitC09RyQ&usqp=CAU"),
-            _buildCardListView(
-                url:
-                    "https://med.mahidol.ac.th/sites/default/files/public/img/event/DSC_0073_1.JPG"),
-            _buildCardListView(
-                url:
-                    "https://themomentum.co/wp-content/uploads/2018/01/Content-rama3-06.png"),
-            _buildCardListView(
-                url:
-                    "https://www.ramafoundation.or.th/give/uploads/projects/thumbnail/5f27dd768f95c.jpg")
-          ],
-        ),
-      )
-    ],
-  ),
-);
-
-Card _buildCardListView({String url}) {
-  return Card(
-    child:
-        FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: url),
-  );
-}
+//Card _buildCardListView({String url}) {
+//  return Card(
+//    child:
+//        FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: url),
+//  );
+//}
 
 //แนวนอนและแนวตั้ง
 //class MyApp extends StatelessWidget {
