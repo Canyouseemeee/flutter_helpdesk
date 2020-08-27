@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
 import 'package:flutter_helpdesk/Menu/IssuesDefer.dart';
 import 'package:flutter_helpdesk/Menu/IssuesNew.dart';
+import 'package:flutter_helpdesk/Menu/Menu.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -22,7 +24,6 @@ class MyApp4 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-
       debugShowCheckedModeBanner: false,
       title: 'CNMI',
 //      debugShowCheckedModeBanner: false,
@@ -42,11 +43,11 @@ class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
   var formatter = DateFormat.yMd().add_jm();
 
-
 //  MainPage one = new MainPage();
   IssuesNew news = new IssuesNew();
   IssuesDefer defer = new IssuesDefer();
   IssuesClosed closed = new IssuesClosed();
+  Menu menu = new Menu();
   List<Widget> pages;
   Widget currantpage;
 
@@ -54,8 +55,9 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     checkLoginStatus();
-    pages = [news, defer, closed];
+    pages = [news, defer, closed,menu];
     currantpage = news;
+    // exit(sharedPreferences.clear())
   }
 
   checkLoginStatus() async {
@@ -70,49 +72,58 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("CNMI Helpdesk"),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.exit_to_app),
-            onPressed: () {
-              sharedPreferences.clear();
-              sharedPreferences.commit();
-              Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                      builder: (BuildContext context) => LoginScreen()),
-                  (Route<dynamic> route) => false);
-            },
-          ),
-        ],
-      ),
+//      appBar: AppBar(
+//        title: Row(
+//          mainAxisAlignment: MainAxisAlignment.center,
+//          mainAxisSize: MainAxisSize.min,
+//          children: [
+//            Text(
+//              "CNMI Helpdesk",
+//            )
+//          ],
+//        ),
+//        actions: <Widget>[
+//          IconButton(
+//            icon: Icon(Icons.exit_to_app),
+//            onPressed: () {
+//              sharedPreferences.clear();
+//              sharedPreferences.commit();
+//              Navigator.of(context).pushAndRemoveUntil(
+//                  MaterialPageRoute(
+//                      builder: (BuildContext context) => LoginScreen()),
+//                  (Route<dynamic> route) => false);
+//            },
+//          ),
+//        ],
+//      ),
       body: currantpage,
 //      callPage(_currentIndex),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        items: [
-//          BottomNavigationBarItem(
-//              icon: Icon(Icons.home),
-//              title: Text("Dashboard"),
-//              backgroundColor: Colors.blue),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.search),
-              title: Text("New"),
-              backgroundColor: Colors.blue),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.camera),
-              title: Text("Defer"),
-              backgroundColor: Colors.blue),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              title: Text("Closed"),
-              backgroundColor: Colors.blue),
-        ],
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-            currantpage = pages[index];
+      bottomNavigationBar: SafeArea(
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          items: [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.new_releases),
+                title: Text("New"),
+                backgroundColor: Colors.blue),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.note),
+                title: Text("Defer"),
+                backgroundColor: Colors.blue),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.save),
+                title: Text("Closed"),
+                backgroundColor: Colors.blue),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.menu),
+                title: Text("Menu"),
+                backgroundColor: Colors.blue),
+          ],
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+              currantpage = pages[index];
 //            if (_currentIndex == 0) {
 //              Navigator.of(context).pushAndRemoveUntil(
 //                  MaterialPageRoute(
@@ -137,8 +148,9 @@ class _MainPageState extends State<MainPage> {
 //                      builder: (BuildContext context) => IssuesClosed()),
 //                      (Route<dynamic> route) => false);
 //            }
-          });
-        },
+            });
+          },
+        ),
       ),
     );
   }

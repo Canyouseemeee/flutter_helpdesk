@@ -1,8 +1,8 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:buddhist_datetime_dateformat/buddhist_datetime_dateformat.dart';
+import 'package:flutter_helpdesk/Menu/IssuesDetail.dart';
 import 'package:flutter_helpdesk/Models/Defer.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
 import 'package:flutter_helpdesk/services/Jsondata.dart';
@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main.dart';
 import 'IssuesClosed.dart';
+import 'IssuesNew.dart';
 
 class IssuesDefer extends StatefulWidget {
   @override
@@ -18,25 +19,29 @@ class IssuesDefer extends StatefulWidget {
 }
 
 class _IssuesDeferState extends State<IssuesDefer> {
+  final double _borderRadius = 24;
   SharedPreferences sharedPreferences;
-  int _currentIndex = 2;
   List<Defer> _defer;
-  bool _loading;
-  var formatter = DateFormat.yMd().add_jm();
+  bool _loading = false;
 
+  var formatter = DateFormat.yMd().add_jm();
 
   @override
   void initState() {
     super.initState();
     checkLoginStatus();
     _loading = true;
-    Jsondata.getDefer().then((defer) {
-      setState(() {
-        _defer = defer;
-        _loading = false;
+    if (Jsondata.getDefer() == null) {
+      _loading = true;
+    } else {
+      Jsondata.getDefer().then((defer) {
+        setState(() {
+          _defer = defer;
+          // _defer = List.generate(10, (index) => _defer[index]);
+          _loading = false;
+        });
       });
-    });
-
+    }
   }
 
   checkLoginStatus() async {
@@ -44,38 +49,43 @@ class _IssuesDeferState extends State<IssuesDefer> {
     if (sharedPreferences.getString("token") == null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-              (Route<dynamic> route) => false);
+          (Route<dynamic> route) => false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-//      appBar: AppBar(
-//        title: Text(_loading ? 'Loading...' :"Defer"),
-//        actions: <Widget>[
-//          IconButton(
-//            icon: Icon(Icons.exit_to_app),
-//            onPressed: () {
-//              sharedPreferences.clear();
-//              sharedPreferences.commit();
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => LoginScreen()),
-//                      (Route<dynamic> route) => false);
-//            },
-//          ),
-//        ],
-//      ),
-      body: _showJsondata(),
+//Todo Appbar
+      appBar: AppBar(
+        title: Align(alignment: Alignment.center,child: Text(_loading ? 'Loading...' : "Defer")),
+        // actions: <Widget>[
+        //   IconButton(
+        //     icon: Icon(Icons.exit_to_app),
+        //     onPressed: () {
+        //       sharedPreferences.clear();
+        //       sharedPreferences.commit();
+        //       Navigator.of(context).pushAndRemoveUntil(
+        //           MaterialPageRoute(
+        //               builder: (BuildContext context) => LoginScreen()),
+        //           (Route<dynamic> route) => false);
+        //     },
+        //   ),
+        // ],
+      ),
+      body: (_loading
+          ? new Center(child: new CircularProgressIndicator())
+          : _showJsondata()),
+
+//Todo Tabbar
 //      bottomNavigationBar: BottomNavigationBar(
 //        currentIndex: _currentIndex,
 //        type: BottomNavigationBarType.fixed,
 //        items: [
-//          BottomNavigationBarItem(
-//              icon: Icon(Icons.home),
-//              title: Text("Dashboard"),
-//              backgroundColor: Colors.blue),
+////          BottomNavigationBarItem(
+////              icon: Icon(Icons.home),
+////              title: Text("Dashboard"),
+////              backgroundColor: Colors.blue),
 //          BottomNavigationBarItem(
 //              icon: Icon(Icons.search),
 //              title: Text("New"),
@@ -121,41 +131,143 @@ class _IssuesDeferState extends State<IssuesDefer> {
 //      ),
     );
   }
+
   Widget _showJsondata() => new RefreshIndicator(
-    child: ListView.builder(
-      scrollDirection: Axis.vertical,
-      itemCount: null == _defer ? 0 : _defer.length,
-      itemBuilder: (context, index) {
-        Defer defer = _defer[index];
-        return Card(
-          child: Container(
-            child: Row(
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(defer.issuesid.toString()),
-                    Text(defer.trackName),
-                    Text(defer.issName),
-                    Text(defer.ispName),
-                    Text(defer.users),
-                    Text(defer.subject),
-                    Text(formatter.formatInBuddhistCalendarThai(defer.updatedAt)),
-                  ],
+        child: ListView.builder(
+          scrollDirection: Axis.vertical,
+          itemCount: null == _defer ? 0 : _defer.length,
+          // itemCount: _defer.length,
+          itemBuilder: (context, index) {
+            // if ( index == _defer.length + 1) {
+            //   return CupertinoActivityIndicator();
+            // }
+            Defer defer = _defer[index];
+
+            return GestureDetector(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Stack(
+                    children: <Widget>[
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(_borderRadius),
+                          gradient: LinearGradient(
+                            colors: [Colors.pink, Colors.red],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.red,
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Image.asset(
+                                'assets/mac-os.png',
+                                height: 40,
+                                width: 40,
+                              ),
+                              flex: 2,
+                            ),
+                            Expanded(
+                              flex: 4,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    defer.subject,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  SizedBox(
+                                    height: 16,
+                                  ),
+                                  Text(
+                                    defer.issuesid.toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Text(
+                                    defer.trackName.toString().substring(10),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  SizedBox(
+                                    height: 16,
+                                  ),
+                                  Text(
+                                    formatter.formatInBuddhistCalendarThai(
+                                        defer.updatedAt),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
-            ),
-          ),
-        );
-      },
-    ),
-    onRefresh: _handleRefresh,
-  );
+              ),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => IssuesDeferDetail(defer)),
+                );
+              },
+            );
+
+//Todo Card
+//        return Card(
+//          child: Container(
+//            child: Row(
+//              children: <Widget>[
+//                Column(
+//                  crossAxisAlignment: CrossAxisAlignment.start,
+//                  children: <Widget>[
+//                    Text(defer.issuesid.toString()),
+//                    Text(defer.trackName),
+//                    Text(defer.subject),
+//                    Text(formatter.formatInBuddhistCalendarThai(defer.updatedAt)),
+//                  ],
+//                ),
+//              ],
+//            ),
+//          ),
+//        );
+          },
+        ),
+        onRefresh: _handleRefresh,
+      );
 
   Future<Null> _handleRefresh() async {
     Completer<Null> completer = new Completer<Null>();
 
-    new Future.delayed(new Duration(seconds: 3)).then((_) {
+    new Future.delayed(new Duration(milliseconds: 2 )).then((_) {
       completer.complete();
       setState(() {
         _loading = true;
