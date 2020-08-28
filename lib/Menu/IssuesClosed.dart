@@ -128,7 +128,7 @@ class _IssuesClosedState extends State<IssuesClosed>
   Widget _showJsondata() => new RefreshIndicator(
     child: ListView.builder(
       scrollDirection: Axis.vertical,
-      itemCount: null == _closed? 0 : _closed.length,
+      itemCount: null == _closed ? 0 : _closed.length,
       itemBuilder: (context, index) {
         Closed closed = _closed[index];
         return GestureDetector(

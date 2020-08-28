@@ -6,7 +6,10 @@ import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
 import 'package:flutter_helpdesk/Menu/IssuesDefer.dart';
 import 'package:flutter_helpdesk/Menu/IssuesNew.dart';
 import 'package:flutter_helpdesk/Menu/Menu.dart';
+import 'package:flutter_helpdesk/Models/New.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:flutter_helpdesk/services/BadgeIcon.dart';
+import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +30,7 @@ class MyApp4 extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'CNMI',
 //      debugShowCheckedModeBanner: false,
-      theme: ThemeData(accentColor: Colors.deepPurple),
+      theme: ThemeData(accentColor: Colors.blue),
       home: MainPage(),
     );
   }
@@ -40,8 +43,12 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   SharedPreferences sharedPreferences;
+  StreamController<int> _countController = StreamController<int>();
   int _currentIndex = 0;
+  int _tabBarCount = 0;
   var formatter = DateFormat.yMd().add_jm();
+  List<New> _new;
+  bool _loading;
 
 //  MainPage one = new MainPage();
   IssuesNew news = new IssuesNew();
@@ -54,20 +61,26 @@ class _MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
-    checkLoginStatus();
-    pages = [news, defer, closed,menu];
+    pages = [news, defer, closed, menu];
     currantpage = news;
+    _loading = true;
+    Jsondata.getNew().then((_newss) {
+      setState(() {
+        _new = _newss;
+        _loading = false;
+        if (_new.length != 0) {
+          _tabBarCount = _new.length;
+          _countController.sink.add(_tabBarCount);
+        }
+        else{
+          _tabBarCount = _new.length;
+          _countController.sink.add(_tabBarCount);
+        }
+      });
+    });
     // exit(sharedPreferences.clear())
   }
 
-  checkLoginStatus() async {
-    sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-          (Route<dynamic> route) => false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -97,62 +110,99 @@ class _MainPageState extends State<MainPage> {
 //        ],
 //      ),
       body: currantpage,
-//      callPage(_currentIndex),
-      bottomNavigationBar: SafeArea(
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(
-                icon: Icon(Icons.new_releases),
-                title: Text("New"),
-                backgroundColor: Colors.blue),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.note),
-                title: Text("Defer"),
-                backgroundColor: Colors.blue),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.save),
-                title: Text("Closed"),
-                backgroundColor: Colors.blue),
-            BottomNavigationBarItem(
-                icon: Icon(Icons.menu),
-                title: Text("Menu"),
-                backgroundColor: Colors.blue),
-          ],
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-              currantpage = pages[index];
-//            if (_currentIndex == 0) {
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => MainPage()),
-//                      (Route<dynamic> route) => false);
-//            }
-//            if (_currentIndex == 1) {
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => IssuesNew()),
-//                      (Route<dynamic> route) => false);
-//            }
-//            if (_currentIndex == 2) {
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => IssuesDefer()),
-//                      (Route<dynamic> route) => false);
-//            }
-//            if (_currentIndex == 3) {
-//              Navigator.of(context).pushAndRemoveUntil(
-//                  MaterialPageRoute(
-//                      builder: (BuildContext context) => IssuesClosed()),
-//                      (Route<dynamic> route) => false);
-//            }
-            });
-          },
+      bottomNavigationBar: RefreshIndicator(
+        child: SafeArea(
+          child: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            type: BottomNavigationBarType.fixed,
+            items: [
+              BottomNavigationBarItem(
+                icon: StreamBuilder(
+                  initialData: _tabBarCount,
+                  stream: _countController.stream,
+                  builder: (_, snapshot) => BadgeIcon(
+                    icon: Icon(
+                      Icons.new_releases,
+                    ),
+                    badgeCount: snapshot.data,
+                  ),
+                ),
+                title: const Text("News"),
+              ),
+              // icon: Icon(Icons.new_releases),
+              // title: Text("New"),
+              // backgroundColor: Colors.blue),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.note),
+                  title: Text("Defer"),
+                  backgroundColor: Colors.blue),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.save),
+                  title: Text("Closed"),
+                  backgroundColor: Colors.blue),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.menu),
+                  title: Text("Menu"),
+                  backgroundColor: Colors.blue),
+            ],
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+                currantpage = pages[index];
+                Jsondata.getNew().then((_newss) {
+                  setState(() {
+                    _new = _newss;
+                    if (_new.length != 0) {
+                      _tabBarCount = _new.length;
+                      _countController.sink.add(_tabBarCount);
+                    }
+                    else{
+                      _tabBarCount = _new.length;
+                      _countController.sink.add(_tabBarCount);
+                    }
+                  });
+                });
+              });
+            },
+          ),
         ),
+        onRefresh: _handleRefresh,
       ),
     );
+  }
+
+  Future<Null> _handleRefresh() async {
+    Completer<Null> completer = new Completer<Null>();
+
+    new Future.delayed(new Duration(milliseconds: 5)).then((_) {
+      completer.complete();
+      setState(() {
+        _loading = true;
+        Jsondata.getNew().then((_newss) {
+          setState(() {
+            _new = _newss;
+            _loading = false;
+            if (_new.length != 0) {
+              _tabBarCount = _new.length;
+              _countController.sink.add(_tabBarCount);
+            }
+            else{
+              _tabBarCount = _new.length;
+              _countController.sink.add(_tabBarCount);
+            }
+          });
+        });
+      });
+    });
+
+    return null;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    // _countController.close();
   }
 }
 

@@ -30,6 +30,7 @@ class _IssuesNewState extends State<IssuesNew> {
   Widget currantpage;
   List<New> _new;
   bool _loading;
+  int _total = 0;
 
   @override
   void initState() {
@@ -39,11 +40,12 @@ class _IssuesNewState extends State<IssuesNew> {
     Jsondata.getNew().then((news) {
       setState(() {
         _new = news;
+        // print(_new.length);
         _loading = false;
       });
     });
-    pages = [news, defer, closed];
-    currantpage = news;
+    // pages = [news, defer, closed];
+    // currantpage = news;
   }
 
   checkLoginStatus() async {
@@ -135,12 +137,9 @@ class _IssuesNewState extends State<IssuesNew> {
   Widget _showJsondata() => new RefreshIndicator(
         child: ListView.builder(
           scrollDirection: Axis.vertical,
-          itemCount: null == _new ? 0 : _new.length,
+          itemCount: _new.length,
           itemBuilder: (context, index) {
             New news = _new[index];
-            if (news == null) {
-              return Center(child: Text("No data",style: TextStyle(color: Colors.black),),);
-            }
             return GestureDetector(
               child: Center(
                 child: Padding(
@@ -206,7 +205,7 @@ class _IssuesNewState extends State<IssuesNew> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Text(
-                                    news.trackName.toString().substring(10),
+                                    news.trackName,
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700),
@@ -234,7 +233,8 @@ class _IssuesNewState extends State<IssuesNew> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => IssuesNewDetail(news)),
+                  MaterialPageRoute(
+                      builder: (context) => IssuesNewDetail(news)),
                 );
               },
             );

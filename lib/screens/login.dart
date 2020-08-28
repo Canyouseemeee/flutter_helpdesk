@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  String email;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onSaved: (String value) {},
       );
 
-  signIn(String email, String password) async {
+  signIn(email, String password) async {
     Map data = {'email': email, 'password': password};
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
@@ -117,6 +118,9 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
         sharedPreferences.setString("token", jsonData['token']);
+        sharedPreferences.setString('email', emailController.text.toString());
+        // print(sharedPreferences.getString('email'));
+
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (BuildContext context) => MainPage()),
             (Route<dynamic> route) => false);

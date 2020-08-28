@@ -21,6 +21,8 @@ class Closed {
     this.description,
     this.createdAt,
     this.updatedAt,
+    this.dmName,
+    this.createAt,
   });
 
   int issuesid;
@@ -34,6 +36,9 @@ class Closed {
   String description;
   DateTime createdAt;
   DateTime updatedAt;
+  String dmName;
+  DateTime createAt;
+
 
   factory Closed.fromJson(Map<String, dynamic> json) => Closed(
     issuesid: json["Issuesid"],
@@ -47,6 +52,9 @@ class Closed {
     description: json["Description"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
+    dmName: json["DmName"],
+    createAt: DateTime.parse(json["create_at"]),
+
   );
 
   Map<String, dynamic> toJson() => {
@@ -61,5 +69,8 @@ class Closed {
     "Description": description,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),
+    "DmName": dmName,
+    "create_at": createAt.toIso8601String(),
+
   };
 }

@@ -3,14 +3,13 @@ import 'package:flutter_helpdesk/screens/login.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 class Menu extends StatefulWidget {
   @override
   _MenuState createState() => _MenuState();
 }
 
 class _MenuState extends State<Menu> {
-  SharedPreferences sharedPreferences ;
+  SharedPreferences sharedPreferences;
 
   @override
   void initState() {
@@ -24,7 +23,7 @@ class _MenuState extends State<Menu> {
     if (sharedPreferences.getString("token") == null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-              (Route<dynamic> route) => false);
+          (Route<dynamic> route) => false);
     }
   }
 
@@ -32,7 +31,7 @@ class _MenuState extends State<Menu> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Align(alignment: Alignment.center,child: Text("Menu")),
+        title: Align(alignment: Alignment.center, child: Text("Menu")),
         // actions: <Widget>[
         //   IconButton(
         //     icon: Icon(Icons.exit_to_app),
@@ -55,9 +54,7 @@ class _MenuState extends State<Menu> {
               SettingsTile(
                 title: 'Profile',
                 leading: Icon(Icons.person),
-                onTap: (){
-
-                },
+                onTap: () {},
               ),
             ],
           ),
@@ -68,12 +65,7 @@ class _MenuState extends State<Menu> {
                 title: 'Logout',
                 leading: Icon(Icons.exit_to_app),
                 onTap: () {
-                  sharedPreferences.clear();
-                  sharedPreferences.commit();
-                  return  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => LoginScreen()),
-                      (Route<dynamic> route) => false,);
+                  _showLogoutAlertDialog();
                 },
               ),
             ],
@@ -81,5 +73,39 @@ class _MenuState extends State<Menu> {
         ],
       ),
     );
+  }
+
+  void _showLogoutAlertDialog() async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("${_prefs.getString("email")} to logout"),
+            content: Text("Are you sure"),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  sharedPreferences.clear();
+                  sharedPreferences.commit();
+                  return Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => LoginScreen()),
+                    (Route<dynamic> route) => false,
+                  );
+                },
+                child: Text("Yes"),
+              ),
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text("No"),
+              ),
+            ],
+          );
+        });
   }
 }

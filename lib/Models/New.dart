@@ -4,9 +4,11 @@
 
 import 'dart:convert';
 
-List<New> NewFromJson(String str) => List<New>.from(json.decode(str).map((x) => New.fromJson(x)));
+List<New> NewFromJson(String str) =>
+    List<New>.from(json.decode(str).map((x) => New.fromJson(x)));
 
-String NewToJson(List<New> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String NewToJson(List<New> data) =>
+    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class New {
   New({
@@ -21,6 +23,7 @@ class New {
     this.description,
     this.createdAt,
     this.updatedAt,
+    this.dmName,
   });
 
   int issuesid;
@@ -34,32 +37,35 @@ class New {
   String description;
   DateTime createdAt;
   DateTime updatedAt;
+  String dmName;
 
   factory New.fromJson(Map<String, dynamic> json) => New(
-    issuesid: json["Issuesid"],
-    trackName: json["TrackName"],
-    subTrackName: json["SubTrackName"],
-    name: json["Name"],
-    issName: json["ISSName"],
-    ispName: json["ISPName"],
-    users: json["Users"],
-    subject: json["Subject"],
-    description: json["Description"],
-    createdAt: DateTime.parse(json["created_at"]),
-    updatedAt: DateTime.parse(json["updated_at"]),
-  );
+        issuesid: json["Issuesid"],
+        trackName: json["TrackName"],
+        subTrackName: json["SubTrackName"],
+        name: json["Name"],
+        issName: json["ISSName"],
+        ispName: json["ISPName"],
+        users: json["Users"],
+        subject: json["Subject"],
+        description: json["Description"],
+        createdAt: DateTime.parse(json["created_at"]),
+        updatedAt: DateTime.parse(json["updated_at"]),
+        dmName: json["DmName"],
+      );
 
   Map<String, dynamic> toJson() => {
-    "Issuesid": issuesid,
-    "TrackName": trackName,
-    "SubTrackName": subTrackName,
-    "Name": name,
-    "ISSName": issName,
-    "ISPName": ispName,
-    "Users": users,
-    "Subject": subject,
-    "Description": description,
-    "created_at": createdAt.toIso8601String(),
-    "updated_at": updatedAt.toIso8601String(),
-  };
+        "Issuesid": issuesid,
+        "TrackName": trackName,
+        "SubTrackName": subTrackName,
+        "Name": name,
+        "ISSName": issName,
+        "ISPName": ispName,
+        "Users": users,
+        "Subject": subject,
+        "Description": description,
+        "created_at": createdAt.toIso8601String(),
+        "updated_at": updatedAt.toIso8601String(),
+        "DmName": dmName,
+      };
 }
