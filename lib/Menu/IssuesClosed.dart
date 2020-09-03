@@ -12,20 +12,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'IssuesDefer.dart';
 import 'IssuesNew.dart';
 
-class IssuesClosed extends StatefulWidget  {
+class IssuesClosed extends StatefulWidget {
   @override
   _IssuesClosedState createState() => _IssuesClosedState();
 }
 
-class _IssuesClosedState extends State<IssuesClosed>
-{
+class _IssuesClosedState extends State<IssuesClosed> {
   var formatter = DateFormat.yMMMd().add_jm();
   SharedPreferences sharedPreferences;
   final double _borderRadius = 24;
   int _currentIndex = 1;
   List<Closed> _closed;
   bool _loading;
-
 
   @override
   void initState() {
@@ -45,7 +43,7 @@ class _IssuesClosedState extends State<IssuesClosed>
     if (sharedPreferences.getString("token") == null) {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-              (Route<dynamic> route) => false);
+          (Route<dynamic> route) => false);
     }
   }
 
@@ -53,7 +51,9 @@ class _IssuesClosedState extends State<IssuesClosed>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Align(alignment: Alignment.center,child: Text(_loading ? 'Loading...' : "Closed")),
+        title: Align(
+            alignment: Alignment.center,
+            child: Text(_loading ? 'Loading...' : "Closed")),
         // actions: <Widget>[
         //   IconButton(
         //     icon: Icon(Icons.exit_to_app),
@@ -126,112 +126,120 @@ class _IssuesClosedState extends State<IssuesClosed>
   }
 
   Widget _showJsondata() => new RefreshIndicator(
-    child: ListView.builder(
-      scrollDirection: Axis.vertical,
-      itemCount: null == _closed ? 0 : _closed.length,
-      itemBuilder: (context, index) {
-        Closed closed = _closed[index];
-        return GestureDetector(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Stack(
-                children: <Widget>[
-                  Container(
-                    height: 120,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(_borderRadius),
-                      gradient: LinearGradient(
-                        colors: [Colors.pink, Colors.red],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+        child: ListView.builder(
+          scrollDirection: Axis.vertical,
+          itemCount: null == _closed ? 0 : _closed.length,
+          itemBuilder: (context, index) {
+            Closed closed = _closed[index];
+            return GestureDetector(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Stack(
+                    children: <Widget>[
+                      Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(_borderRadius),
+                          gradient: LinearGradient(
+                            colors: [Colors.blue, Colors.lightBlue],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey,
+                              blurRadius: 12,
+                              offset: Offset(0, 6),
+                            ),
+                          ],
+                        ),
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.red,
-                          blurRadius: 12,
-                          offset: Offset(0, 6),
+                      Positioned.fill(
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Image.asset(
+                                'assets/mac-os.png',
+                                height: 40,
+                                width: 40,
+                              ),
+                              flex: 2,
+                            ),
+                            Expanded(
+                              flex: 4,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    closed.subject,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  SizedBox(
+                                    height: 16,
+                                  ),
+                                  Text(
+                                    closed.issuesid.toString(),
+                                    style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Expanded(
+                              flex: 5,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    closed.trackName.toString(),
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                  SizedBox(
+                                    height: 16,
+                                  ),
+                                  Text(
+                                    formatter.formatInBuddhistCalendarThai(
+                                        closed.updatedAt),
+                                    style: TextStyle(
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_right,
+                              color: Colors.white,
+                              size: 30,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Positioned.fill(
-                    child: Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: Image.asset(
-                            'assets/mac-os.png',
-                            height: 40,
-                            width: 40,
-                          ),
-                          flex: 2,
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                closed.subject,
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                              SizedBox(
-                                height: 16,
-                              ),
-                              Text(
-                                closed.issuesid.toString(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Text(
-                                closed.trackName.toString(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                              SizedBox(
-                                height: 16,
-                              ),
-                              Text(
-                                formatter.formatInBuddhistCalendarThai(
-                                    closed.updatedAt),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => IssuesClosedDetail(closed)),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => IssuesClosedDetail(closed)),
+                );
+              },
             );
           },
-        );
-      },
-    ),
-    onRefresh: _handleRefresh,
-  );
+        ),
+        onRefresh: _handleRefresh,
+      );
 
   Future<Null> _handleRefresh() async {
     Completer<Null> completer = new Completer<Null>();
@@ -248,10 +256,15 @@ class _IssuesClosedState extends State<IssuesClosed>
             });
           });
         }
-
       });
     });
 
     return null;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 }

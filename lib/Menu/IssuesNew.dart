@@ -40,12 +40,9 @@ class _IssuesNewState extends State<IssuesNew> {
     Jsondata.getNew().then((news) {
       setState(() {
         _new = news;
-        // print(_new.length);
         _loading = false;
       });
     });
-    // pages = [news, defer, closed];
-    // currantpage = news;
   }
 
   checkLoginStatus() async {
@@ -61,7 +58,9 @@ class _IssuesNewState extends State<IssuesNew> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Align(alignment: Alignment.center,child: Text(_loading ? 'Loading...' : "New")),
+        title: Align(
+            alignment: Alignment.center,
+            child: Text(_loading ? 'Loading...' : "New")),
         // actions: <Widget>[
         //   IconButton(
         //     icon: Icon(Icons.exit_to_app),
@@ -151,13 +150,13 @@ class _IssuesNewState extends State<IssuesNew> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(_borderRadius),
                           gradient: LinearGradient(
-                            colors: [Colors.pink, Colors.red],
+                            colors: [Colors.blue, Colors.lightBlue],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.red,
+                              color: Colors.grey,
                               blurRadius: 12,
                               offset: Offset(0, 6),
                             ),
@@ -183,6 +182,7 @@ class _IssuesNewState extends State<IssuesNew> {
                                 children: <Widget>[
                                   Text(
                                     news.subject,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700),
@@ -193,8 +193,8 @@ class _IssuesNewState extends State<IssuesNew> {
                                   Text(
                                     news.issuesid.toString(),
                                     style: TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),
@@ -217,11 +217,16 @@ class _IssuesNewState extends State<IssuesNew> {
                                     formatter.formatInBuddhistCalendarThai(
                                         news.updatedAt),
                                     style: TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_right,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ],
                         ),
@@ -260,5 +265,11 @@ class _IssuesNewState extends State<IssuesNew> {
     });
 
     return null;
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
   }
 }

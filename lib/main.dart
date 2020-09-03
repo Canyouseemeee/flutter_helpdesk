@@ -7,8 +7,9 @@ import 'package:flutter_helpdesk/Menu/IssuesDefer.dart';
 import 'package:flutter_helpdesk/Menu/IssuesNew.dart';
 import 'package:flutter_helpdesk/Menu/Menu.dart';
 import 'package:flutter_helpdesk/Models/New.dart';
-import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:flutter_helpdesk/screens/Loading.dart';
 import 'package:flutter_helpdesk/services/BadgeIcon.dart';
+import 'package:flutter_helpdesk/services/Deviceinfo.dart';
 import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -29,9 +30,8 @@ class MyApp4 extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CNMI',
-//      debugShowCheckedModeBanner: false,
       theme: ThemeData(accentColor: Colors.blue),
-      home: MainPage(),
+      home: Deviceinfo(),
     );
   }
 }
@@ -78,7 +78,7 @@ class _MainPageState extends State<MainPage> {
         }
       });
     });
-    // exit(sharedPreferences.clear())
+
   }
 
 

@@ -1,13 +1,15 @@
 import 'dart:convert';
-import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_helpdesk/main.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_helpdesk/services/Jsondata.dart';
+import 'package:flutter_helpdesk/screens/Loading.dart';
 import 'package:validators/validators.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 class LoginScreen extends StatefulWidget {
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -15,7 +17,12 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
-  String email;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,23 +80,22 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       );
 
-  Widget _logo() => Image.asset(
-        ("assets/header_main.png"),
-        fit: BoxFit.cover,
-      );
+  Widget _logo() => FadeInImage.memoryNetwork(
+      placeholder: kTransparentImage,
+      image:
+          "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/CNMI_logo.svg/1200px-CNMI_logo.svg.png");
 
-  TextEditingController emailController = new TextEditingController();
+  TextEditingController usernameController = new TextEditingController();
   TextEditingController passwordController = new TextEditingController();
 
   Widget _buildUsernameInput() => TextFormField(
-        controller: emailController,
+        controller: usernameController,
         decoration: InputDecoration(
-          labelText: 'Email',
-          hintText: 'example@gmail.com',
-          icon: Icon(Icons.email),
+          labelText: 'Username',
+          hintText: 'Username',
+          icon: Icon(Icons.person),
         ),
-        keyboardType: TextInputType.emailAddress,
-        validator: _validateEmail,
+        validator: _validateUsername,
         onSaved: (String value) {},
         onFieldSubmitted: (String value) {},
       );
@@ -105,12 +111,12 @@ class _LoginScreenState extends State<LoginScreen> {
         onSaved: (String value) {},
       );
 
-  signIn(email, String password) async {
-    Map data = {'email': email, 'password': password};
+  signIn(String username, String password) async {
+    Map data = {'username': username, 'password': password};
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response =
-        await http.post("http://10.57.34.148:8000/api/login", body: data);
+        await http.post("http://cnmihelpdesk.rama.mahidol.ac.th/api/login", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -118,7 +124,8 @@ class _LoginScreenState extends State<LoginScreen> {
           _isLoading = false;
         });
         sharedPreferences.setString("token", jsonData['token']);
-        sharedPreferences.setString('email', emailController.text.toString());
+        sharedPreferences.setString(
+            'username', usernameController.text.toString());
         // print(sharedPreferences.getString('email'));
 
         Navigator.of(context).pushAndRemoveUntil(
@@ -126,8 +133,31 @@ class _LoginScreenState extends State<LoginScreen> {
             (Route<dynamic> route) => false);
       }
     } else {
+      _showAlertDialog();
       print(response.body);
     }
+  }
+
+  void _showAlertDialog() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Username หรือ Password ไม่ถูกต้อง"),
+            // content: Text("Are you sure"),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  usernameController.clear();
+                  passwordController.clear();
+                  Navigator.pop(context);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        });
   }
 
   Widget _buildSubmitButton() => Container(
@@ -137,14 +167,11 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20.0),
         child: RaisedButton(
           color: Colors.blueAccent,
-          onPressed: emailController.text == "" || passwordController.text == "" ? null : () {
-            _submit();
-//            setState(() {
-//              _isLoading = true;
-//            });
-
-            signIn(emailController.text, passwordController.text);
-          },
+          onPressed:
+              usernameController.text == "" || passwordController.text == "" ? null : () {
+                      _submit();
+                      signIn(usernameController.text, passwordController.text);
+                      },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0),
           ),
@@ -159,12 +186,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (this._formKey.currentState.validate()) {}
   }
 
-  String _validateEmail(String value) {
+  String _validateUsername(String value) {
     if (value.isEmpty) {
-      return "The Email is Empty.";
-    }
-    if (!isEmail(value)) {
-      return "The Email must be a valid email.";
+      return "The Username is Empty.";
     }
   }
 

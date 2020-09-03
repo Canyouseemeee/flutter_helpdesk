@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_helpdesk/screens/Loading.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:flutter_helpdesk/services/MacAdress.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 
 class Menu extends StatefulWidget {
   @override
@@ -10,12 +13,15 @@ class Menu extends StatefulWidget {
 
 class _MenuState extends State<Menu> {
   SharedPreferences sharedPreferences;
+  String _username;
+
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     checkLoginStatus();
+    _settingsection();
   }
 
   checkLoginStatus() async {
@@ -25,6 +31,14 @@ class _MenuState extends State<Menu> {
           MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
           (Route<dynamic> route) => false);
     }
+  }
+
+  Future<void> _settingsection() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    final String username = sharedPreferences.getString("username");
+    setState(() {
+      _username = username;
+    });
   }
 
   @override
@@ -53,6 +67,7 @@ class _MenuState extends State<Menu> {
             tiles: [
               SettingsTile(
                 title: 'Profile',
+                subtitle: '${_username}',
                 leading: Icon(Icons.person),
                 onTap: () {},
               ),
@@ -83,7 +98,7 @@ class _MenuState extends State<Menu> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Text("${_prefs.getString("email")} to logout"),
+            title: Text("${_prefs.getString("username")} to logout"),
             content: Text("Are you sure"),
             actions: [
               FlatButton(

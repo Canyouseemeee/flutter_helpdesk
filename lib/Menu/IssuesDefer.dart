@@ -23,6 +23,8 @@ class _IssuesDeferState extends State<IssuesDefer> {
   SharedPreferences sharedPreferences;
   List<Defer> _defer;
   bool _loading = false;
+  ScrollController _scrollController = new ScrollController();
+  int _currentMax = 10;
 
   var formatter = DateFormat.yMd().add_jm();
 
@@ -31,17 +33,19 @@ class _IssuesDeferState extends State<IssuesDefer> {
     super.initState();
     checkLoginStatus();
     _loading = true;
-    if (Jsondata.getDefer() == null) {
-      _loading = true;
-    } else {
-      Jsondata.getDefer().then((defer) {
-        setState(() {
-          _defer = defer;
-          // _defer = List.generate(10, (index) => _defer[index]);
-          _loading = false;
-        });
+    Jsondata.getDefer().then((defer) {
+      setState(() {
+        _defer = defer;
+        _loading = false;
       });
-    }
+    });
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _scrollController.dispose();
+    super.dispose();
   }
 
   checkLoginStatus() async {
@@ -58,7 +62,9 @@ class _IssuesDeferState extends State<IssuesDefer> {
     return Scaffold(
 //Todo Appbar
       appBar: AppBar(
-        title: Align(alignment: Alignment.center,child: Text(_loading ? 'Loading...' : "Defer")),
+        title: Align(
+            alignment: Alignment.center,
+            child: Text(_loading ? 'Loading...' : "Defer")),
         // actions: <Widget>[
         //   IconButton(
         //     icon: Icon(Icons.exit_to_app),
@@ -134,15 +140,14 @@ class _IssuesDeferState extends State<IssuesDefer> {
 
   Widget _showJsondata() => new RefreshIndicator(
         child: ListView.builder(
+          // controller: _scrollController,
           scrollDirection: Axis.vertical,
-          itemCount: null == _defer ? 0 : _defer.length,
-          // itemCount: _defer.length,
+          itemCount: null == _defer ? 0 : _defer.length + 1,
           itemBuilder: (context, index) {
-            // if ( index == _defer.length + 1) {
-            //   return CupertinoActivityIndicator();
-            // }
+            if (index == _defer.length) {
+              return CupertinoActivityIndicator();
+            }
             Defer defer = _defer[index];
-
             return GestureDetector(
               child: Center(
                 child: Padding(
@@ -154,13 +159,13 @@ class _IssuesDeferState extends State<IssuesDefer> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(_borderRadius),
                           gradient: LinearGradient(
-                            colors: [Colors.pink, Colors.red],
+                            colors: [Colors.blue, Colors.lightBlue],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.red,
+                              color: Colors.grey,
                               blurRadius: 12,
                               offset: Offset(0, 6),
                             ),
@@ -186,6 +191,7 @@ class _IssuesDeferState extends State<IssuesDefer> {
                                 children: <Widget>[
                                   Text(
                                     defer.subject,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.w700),
@@ -196,14 +202,14 @@ class _IssuesDeferState extends State<IssuesDefer> {
                                   Text(
                                     defer.issuesid.toString(),
                                     style: TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),
                             ),
                             Expanded(
-                              flex: 3,
+                              flex: 5,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
@@ -220,11 +226,16 @@ class _IssuesDeferState extends State<IssuesDefer> {
                                     formatter.formatInBuddhistCalendarThai(
                                         defer.updatedAt),
                                     style: TextStyle(
-                                      color: Colors.white,
-                                    ),
+                                        color: Colors.white70,
+                                        fontWeight: FontWeight.w700),
                                   ),
                                 ],
                               ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_right,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ],
                         ),
@@ -236,7 +247,8 @@ class _IssuesDeferState extends State<IssuesDefer> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => IssuesDeferDetail(defer)),
+                  MaterialPageRoute(
+                      builder: (context) => IssuesDeferDetail(defer)),
                 );
               },
             );
@@ -267,7 +279,7 @@ class _IssuesDeferState extends State<IssuesDefer> {
   Future<Null> _handleRefresh() async {
     Completer<Null> completer = new Completer<Null>();
 
-    new Future.delayed(new Duration(milliseconds: 2 )).then((_) {
+    new Future.delayed(new Duration(milliseconds: 2)).then((_) {
       completer.complete();
       setState(() {
         _loading = true;
