@@ -9,7 +9,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 class LoginScreen extends StatefulWidget {
-
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -17,11 +16,31 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
+  SharedPreferences sharedPreferences;
+  bool _disposed = false;
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    checkLoginStatus();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _disposed = true;
+    super.dispose();
+  }
+
+
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") != null) {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (BuildContext context) => MainPage()),
+          (Route<dynamic> route) => false);
+    }
   }
 
   @override
@@ -115,8 +134,8 @@ class _LoginScreenState extends State<LoginScreen> {
     Map data = {'username': username, 'password': password};
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    var response =
-        await http.post("http://cnmihelpdesk.rama.mahidol.ac.th/api/login", body: data);
+    var response = await http
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/login", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -126,6 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
         sharedPreferences.setString("token", jsonData['token']);
         sharedPreferences.setString(
             'username', usernameController.text.toString());
+        postloginlog(sharedPreferences.getString("username"),sharedPreferences.getString("token"));
         // print(sharedPreferences.getString('email'));
 
         Navigator.of(context).pushAndRemoveUntil(
@@ -134,6 +154,29 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       _showAlertDialog();
+      print(response.body);
+    }
+  }
+
+  postloginlog(String username,String token) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    Map data = {
+      'username': username,
+      'macaddress': sharedPreferences.getString("macAddress"),
+      'ip': sharedPreferences.getString("ipAddress"),
+      'token': token,
+    };
+    var jsonData = null;
+    var response = await http
+        .post("http://10.57.34.148:8000/api/issues-postlogin", body: data);
+    if (response.statusCode == 200) {
+      jsonData = json.decode(response.body);
+      if (jsonData != null) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } else {
       print(response.body);
     }
   }
@@ -168,10 +211,12 @@ class _LoginScreenState extends State<LoginScreen> {
         child: RaisedButton(
           color: Colors.blueAccent,
           onPressed:
-              usernameController.text == "" || passwordController.text == "" ? null : () {
+              usernameController.text == "" || passwordController.text == ""
+                  ? null
+                  : () {
                       _submit();
                       signIn(usernameController.text, passwordController.text);
-                      },
+                    },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0),
           ),

@@ -35,7 +35,7 @@ class _IssuesNewState extends State<IssuesNew> {
   @override
   void initState() {
     super.initState();
-    checkLoginStatus();
+    // checkLoginStatus();
     _loading = true;
     Jsondata.getNew().then((news) {
       setState(() {

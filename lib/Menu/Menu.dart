@@ -1,9 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/screens/Loading.dart';
 import 'package:flutter_helpdesk/screens/login.dart';
-import 'package:flutter_helpdesk/services/MacAdress.dart';
+import 'package:package_info/package_info.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'dart:async';
 
 class Menu extends StatefulWidget {
@@ -14,23 +17,72 @@ class Menu extends StatefulWidget {
 class _MenuState extends State<Menu> {
   SharedPreferences sharedPreferences;
   String _username;
+  String _version = "";
+
+  bool _isLoading;
 
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    setState(() {
+      getDeviceinfo();
+    });
     checkLoginStatus();
     _settingsection();
   }
 
   checkLoginStatus() async {
     sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") == null) {
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-          (Route<dynamic> route) => false);
+    if (sharedPreferences.getString("token") != null) {
+      Map data = {
+        'token': sharedPreferences.getString("token"),
+      };
+      var jsonData = null;
+      var response = await http
+          .post("http://10.57.34.148:8000/api/issues-delete", body: data);
+      if (response.statusCode == 200) {
+        jsonData = json.decode(response.body);
+        if (jsonData != null) {
+          setState(() {
+            _isLoading = false;
+            showTokenAlert();
+          });
+        }
+      } else {
+        // print(response.body);
+      }
     }
+  }
+
+  showTokenAlert() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Token ของท่านหมดอายุกรุณาทำการล็อคอินใหม่"),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  sharedPreferences.clear();
+                  sharedPreferences.commit();
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (BuildContext context) => Loading()),
+                          (Route<dynamic> route) => false);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        });
+  }
+
+  Future<void> getDeviceinfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String version = packageInfo.version;
+    _version = version;
+
   }
 
   Future<void> _settingsection() async {
@@ -85,6 +137,11 @@ class _MenuState extends State<Menu> {
               ),
             ],
           ),
+          SettingsSection(
+            title: 'Version '+_version,
+            tiles: [
+            ],
+          ),
         ],
       ),
     );
@@ -107,7 +164,7 @@ class _MenuState extends State<Menu> {
                   sharedPreferences.commit();
                   return Navigator.of(context).pushAndRemoveUntil(
                     MaterialPageRoute(
-                        builder: (BuildContext context) => LoginScreen()),
+                        builder: (BuildContext context) => Loading()),
                     (Route<dynamic> route) => false,
                   );
                 },

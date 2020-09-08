@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_helpdesk/Models/MacAddress.dart';
 import 'package:flutter_helpdesk/services/Jsondata.dart';
+import 'package:get_ip/get_ip.dart';
 import 'package:get_mac/get_mac.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -122,6 +123,7 @@ class _LoadingState extends State<Loading> {
       });
     } else {
       SchedulerBinding.instance.addPostFrameCallback((_) {
+        postLoginData(_macAddress);
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
             (Route<dynamic> route) => false);
@@ -130,6 +132,14 @@ class _LoadingState extends State<Loading> {
 
     // print(_macAddress);
     // print(item['MacAddress']);
+  }
+
+  Future<void> postLoginData(String macAddress) async {
+    String ipAddress = await GetIp.ipAddress;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.setString("macAddress", macAddress);
+    sharedPreferences.setString("ipAddress", ipAddress);
+
   }
 
   void _showAlertDiolog() async {

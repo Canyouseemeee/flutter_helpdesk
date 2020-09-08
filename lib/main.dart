@@ -1,5 +1,7 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
+import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Menu/IssuesClosed.dart';
@@ -31,7 +33,7 @@ class MyApp4 extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'CNMI',
       theme: ThemeData(accentColor: Colors.blue),
-      home: Deviceinfo(),
+      home: Loading(),
     );
   }
 }
@@ -46,11 +48,9 @@ class _MainPageState extends State<MainPage> {
   StreamController<int> _countController = StreamController<int>();
   int _currentIndex = 0;
   int _tabBarCount = 0;
-  var formatter = DateFormat.yMd().add_jm();
   List<New> _new;
   bool _loading;
 
-//  MainPage one = new MainPage();
   IssuesNew news = new IssuesNew();
   IssuesDefer defer = new IssuesDefer();
   IssuesClosed closed = new IssuesClosed();
@@ -71,16 +71,63 @@ class _MainPageState extends State<MainPage> {
         if (_new.length != 0) {
           _tabBarCount = _new.length;
           _countController.sink.add(_tabBarCount);
-        }
-        else{
+        } else {
           _tabBarCount = _new.length;
           _countController.sink.add(_tabBarCount);
         }
       });
     });
-
+    // checkLoginStatus();
   }
 
+  checkLoginStatus() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") != null) {
+      Map data = {
+        'token': sharedPreferences.getString("token"),
+      };
+      var jsonData = null;
+      var response = await http
+          .post("http://10.57.34.148:8000/api/issues-delete", body: data);
+      if (response.statusCode == 200) {
+        jsonData = json.decode(response.body);
+        if (jsonData != null) {
+          setState(() {
+            _loading = false;
+            showTokenAlert();
+          });
+        }
+      } else if (sharedPreferences.getString("token") == null) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
+            (Route<dynamic> route) => false);
+      }
+    }
+  }
+
+  showTokenAlert() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Token ของท่านหมดอายุกรุณาทำการล็อคอินใหม่"),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  sharedPreferences.clear();
+                  sharedPreferences.commit();
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => LoginScreen()),
+                      (Route<dynamic> route) => false);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,8 +202,7 @@ class _MainPageState extends State<MainPage> {
                     if (_new.length != 0) {
                       _tabBarCount = _new.length;
                       _countController.sink.add(_tabBarCount);
-                    }
-                    else{
+                    } else {
                       _tabBarCount = _new.length;
                       _countController.sink.add(_tabBarCount);
                     }
@@ -185,8 +231,7 @@ class _MainPageState extends State<MainPage> {
             if (_new.length != 0) {
               _tabBarCount = _new.length;
               _countController.sink.add(_tabBarCount);
-            }
-            else{
+            } else {
               _tabBarCount = _new.length;
               _countController.sink.add(_tabBarCount);
             }
