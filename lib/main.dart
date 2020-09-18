@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_helpdesk/screens/login.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,28 +12,29 @@ import 'package:flutter_helpdesk/Menu/Menu.dart';
 import 'package:flutter_helpdesk/Models/New.dart';
 import 'package:flutter_helpdesk/screens/Loading.dart';
 import 'package:flutter_helpdesk/services/BadgeIcon.dart';
-import 'package:flutter_helpdesk/services/Deviceinfo.dart';
 import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+
+void main() async {
 //  runApp(MyApp());
+  //todo datethai
   Intl.defaultLocale = 'th';
   initializeDateFormatting();
   runApp(
-    MyApp4(),
+    MyApp(),
   );
 }
 
-class MyApp4 extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'CNMI',
-      theme: ThemeData(accentColor: Colors.blue),
+      theme: ThemeData(accentColor: Color(0xFF34558b)),
       home: Loading(),
     );
   }
@@ -49,7 +51,16 @@ class _MainPageState extends State<MainPage> {
   int _currentIndex = 0;
   int _tabBarCount = 0;
   List<New> _new;
+  String notificationid;
+  String notificationsubject;
+  String notificationtracker;
+  String notificationuser;
   bool _loading;
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  FlutterLocalNotificationsPlugin();
+  AndroidInitializationSettings androidInitializationSettings;
+  IOSInitializationSettings iosInitializationSettings;
+  InitializationSettings initializationSettings;
 
   IssuesNew news = new IssuesNew();
   IssuesDefer defer = new IssuesDefer();
@@ -57,13 +68,40 @@ class _MainPageState extends State<MainPage> {
   Menu menu = new Menu();
   List<Widget> pages;
   Widget currantpage;
+  int count = 0;
+  DateTime time = DateTime.now();
+  bool _disposed = false;
+
 
   @override
   void initState() {
+    Timer(Duration(seconds: 1), () {
+      if (!_disposed)
+        setState(() {
+          time = time.add(Duration(seconds: -1));
+        });
+    });
     super.initState();
     pages = [news, defer, closed, menu];
     currantpage = news;
     _loading = true;
+    // initializing();
+    // Jsondata.getNew().then((_newss) {
+    //   setState(() {
+    //     _new = _newss;
+    //     _loading = false;
+    //     if (_new.length != 0) {
+    //       _tabBarCount = _new.length;
+    //       _countController.sink.add(_tabBarCount);
+    //       initializing();
+    //     } else {
+    //       _tabBarCount = _new.length;
+    //       _countController.sink.add(_tabBarCount);
+    //       initializing();
+    //     }
+    //   });
+    // });
+    initializing();
     Jsondata.getNew().then((_newss) {
       setState(() {
         _new = _newss;
@@ -71,63 +109,101 @@ class _MainPageState extends State<MainPage> {
         if (_new.length != 0) {
           _tabBarCount = _new.length;
           _countController.sink.add(_tabBarCount);
+          initializing();
+          for(int i=0;i<_tabBarCount;i++){
+            if (i == 0) {
+              notificationid = _new[i].issuesid.toString();
+              notificationsubject = _new[i].subject;
+              notificationtracker = _new[i].trackName;
+              notificationuser = _new[i].assignment;
+            }
+          }
+          int count2 = 0;
+          // print(count);
+          // print(_new.length);
+          // print(count2);
+          if (_new.length != null) {
+            if (count != _new.length) {
+              count2 = _tabBarCount - 1;
+              if (count < _new.length && count == count2) {
+                  _showNotificationsAfterSecond();
+              }
+              count = _tabBarCount;
+            }
+          }
         } else {
           _tabBarCount = _new.length;
           _countController.sink.add(_tabBarCount);
         }
       });
     });
-    // checkLoginStatus();
   }
 
-  checkLoginStatus() async {
-    sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") != null) {
-      Map data = {
-        'token': sharedPreferences.getString("token"),
-      };
-      var jsonData = null;
-      var response = await http
-          .post("http://10.57.34.148:8000/api/issues-delete", body: data);
-      if (response.statusCode == 200) {
-        jsonData = json.decode(response.body);
-        if (jsonData != null) {
-          setState(() {
-            _loading = false;
-            showTokenAlert();
-          });
-        }
-      } else if (sharedPreferences.getString("token") == null) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => LoginScreen()),
-            (Route<dynamic> route) => false);
-      }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _countController.close();
+    _disposed = true;
+    super.dispose();
+  }
+
+  void initializing() async {
+    androidInitializationSettings = AndroidInitializationSettings('ic_launcher');
+    iosInitializationSettings = IOSInitializationSettings(
+        onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    initializationSettings = InitializationSettings(
+        androidInitializationSettings, iosInitializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,
+        onSelectNotification: onSelectNotification);
+  }
+
+  void _showNotificationsAfterSecond() async {
+    await notificationAfterSec();
+  }
+
+  Future<void> notificationAfterSec() async {
+    var timeDelayed = DateTime.now().add(Duration(seconds: 2));
+    AndroidNotificationDetails androidNotificationDetails =
+    AndroidNotificationDetails(
+        'second channel ID', 'second Channel title', 'second channel body',
+        priority: Priority.High,
+        importance: Importance.Max,
+        ticker: 'test');
+
+    IOSNotificationDetails iosNotificationDetails = IOSNotificationDetails();
+
+    NotificationDetails notificationDetails =
+    NotificationDetails(androidNotificationDetails, iosNotificationDetails);
+    await flutterLocalNotificationsPlugin.schedule(1, notificationid.toString()+" "+notificationsubject.toString(),
+        notificationtracker.toString()+" "+notificationuser.toString(), timeDelayed, notificationDetails);
+    // print(notificationid.toString());
+    // print(notificationsubject.toString());
+    // print(notificationtracker.toString());
+    // print(notificationuser.toString());
+
+  }
+
+  Future onSelectNotification(String payLoad) {
+    if (payLoad != null) {
+      print(payLoad);
     }
   }
 
-  showTokenAlert() async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Token ของท่านหมดอายุกรุณาทำการล็อคอินใหม่"),
-            actions: [
-              FlatButton(
-                onPressed: () {
-                  sharedPreferences.clear();
-                  sharedPreferences.commit();
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => LoginScreen()),
-                      (Route<dynamic> route) => false);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        });
-  }
+  Future onDidReceiveLocalNotification(int id, String title, String body, String payload) async {
+      return CupertinoAlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: <Widget>[
+          CupertinoDialogAction(
+              isDefaultAction: true,
+              onPressed: () {
+                print("");
+              },
+              child: Text("Okay")),
+        ],
+      );
+    }
+
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +238,8 @@ class _MainPageState extends State<MainPage> {
           child: BottomNavigationBar(
             currentIndex: _currentIndex,
             type: BottomNavigationBarType.fixed,
+            // backgroundColor: Color(0xFF34558b),
+            selectedItemColor: Color(0xFF34558b),
             items: [
               BottomNavigationBarItem(
                 icon: StreamBuilder(
@@ -181,27 +259,48 @@ class _MainPageState extends State<MainPage> {
               // backgroundColor: Colors.blue),
               BottomNavigationBarItem(
                   icon: Icon(Icons.note),
-                  title: Text("Defer"),
-                  backgroundColor: Colors.blue),
+                  title: Text("Defer"),),
               BottomNavigationBarItem(
                   icon: Icon(Icons.save),
-                  title: Text("Closed"),
-                  backgroundColor: Colors.blue),
+                  title: Text("Closed"),),
               BottomNavigationBarItem(
                   icon: Icon(Icons.menu),
-                  title: Text("Menu"),
-                  backgroundColor: Colors.blue),
+                  title: Text("Menu"),),
             ],
             onTap: (index) {
               setState(() {
                 _currentIndex = index;
                 currantpage = pages[index];
+                initializing();
                 Jsondata.getNew().then((_newss) {
                   setState(() {
                     _new = _newss;
+                    _loading = false;
                     if (_new.length != 0) {
                       _tabBarCount = _new.length;
                       _countController.sink.add(_tabBarCount);
+                      initializing();
+                      for(int i=0;i<_tabBarCount;i++){
+                        if (i == 0) {
+                          notificationid = _new[i].issuesid.toString();
+                          notificationsubject = _new[i].subject;
+                          notificationtracker = _new[i].trackName;
+                          notificationuser = _new[i].assignment;
+                        }
+                      }
+                      int count2 = 0;
+                      // print(count);
+                      // print(_new.length);
+                      // print(count2);
+                      if (_new.length != null) {
+                        if (count != _new.length) {
+                          count2 = _tabBarCount - 1;
+                          if (count < _new.length && count == count2) {
+                              _showNotificationsAfterSecond();
+                          }
+                          count = _tabBarCount;
+                        }
+                      }
                     } else {
                       _tabBarCount = _new.length;
                       _countController.sink.add(_tabBarCount);
@@ -224,10 +323,14 @@ class _MainPageState extends State<MainPage> {
       completer.complete();
       setState(() {
         _loading = true;
+        initializing();
         Jsondata.getNew().then((_newss) {
           setState(() {
             _new = _newss;
             _loading = false;
+            if (_new.isNotEmpty) {
+              return _new.elementAt(0);
+            }
             if (_new.length != 0) {
               _tabBarCount = _new.length;
               _countController.sink.add(_tabBarCount);
@@ -243,12 +346,6 @@ class _MainPageState extends State<MainPage> {
     return null;
   }
 
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    // _countController.close();
-  }
 }
 
 // Todo Image

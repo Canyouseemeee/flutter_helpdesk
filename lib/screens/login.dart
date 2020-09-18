@@ -23,7 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    checkLoginStatus();
+    if (!_disposed) {
+      checkLoginStatus();
+    }
   }
 
   @override
@@ -32,7 +34,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _disposed = true;
     super.dispose();
   }
-
 
   checkLoginStatus() async {
     sharedPreferences = await SharedPreferences.getInstance();
@@ -114,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: 'Username',
           icon: Icon(Icons.person),
         ),
-        validator: _validateUsername,
+        // validator: _validateUsername,
         onSaved: (String value) {},
         onFieldSubmitted: (String value) {},
       );
@@ -126,7 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Icon(Icons.lock),
         ),
         obscureText: true,
-        validator: _validatePassword,
+        // validator: _validatePassword,
         onSaved: (String value) {},
       );
 
@@ -138,19 +139,18 @@ class _LoginScreenState extends State<LoginScreen> {
         .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/login", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
+      // print(jsonData);
       if (jsonData != null) {
         setState(() {
           _isLoading = false;
         });
         sharedPreferences.setString("token", jsonData['token']);
         sharedPreferences.setString(
-            'username', usernameController.text.toString());
-        postloginlog(sharedPreferences.getString("username"),sharedPreferences.getString("token"));
+            "username", username);
+        sharedPreferences.setString("name", jsonData['name']);
+        postloginlog(sharedPreferences.getString("username"),
+            sharedPreferences.getString("token"));
         // print(sharedPreferences.getString('email'));
-
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (BuildContext context) => MainPage()),
-            (Route<dynamic> route) => false);
       }
     } else {
       _showAlertDialog();
@@ -158,26 +158,31 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  postloginlog(String username,String token) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+  postloginlog(String username, String token) async {
+    sharedPreferences = await SharedPreferences.getInstance();
     Map data = {
       'username': username,
-      'macaddress': sharedPreferences.getString("macAddress"),
+      'deviceid': sharedPreferences.getString("Deviceid"),
       'ip': sharedPreferences.getString("ipAddress"),
       'token': token,
     };
     var jsonData = null;
     var response = await http
-        .post("http://10.57.34.148:8000/api/issues-postlogin", body: data);
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postlogin", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
         setState(() {
           _isLoading = false;
+          sharedPreferences.setString("expired", jsonData['expired']);
+          print(sharedPreferences.getString("expired"));
         });
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (BuildContext context) => MainPage()),
+                (Route<dynamic> route) => false);
       }
     } else {
-      print(response.body);
+      // print(response.body);
     }
   }
 
@@ -210,13 +215,14 @@ class _LoginScreenState extends State<LoginScreen> {
         padding: EdgeInsets.symmetric(horizontal: 20.0),
         child: RaisedButton(
           color: Colors.blueAccent,
-          onPressed:
-              usernameController.text == "" || passwordController.text == ""
-                  ? null
-                  : () {
-                      _submit();
-                      signIn(usernameController.text, passwordController.text);
-                    },
+          onPressed: usernameController.text == ""
+              ? null
+              : () {
+                  setState(() {
+                    _submit();
+                    signIn(usernameController.text, passwordController.text);
+                  });
+                },
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5.0),
           ),

@@ -66,7 +66,6 @@ class _DeviceinfoState extends State<Deviceinfo> {
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (Platform.isAndroid) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      // print('Running on ${androidInfo.device}');
       deviceinfo = androidInfo.device;
       _deviceinfo = deviceinfo;
       return _deviceinfo;

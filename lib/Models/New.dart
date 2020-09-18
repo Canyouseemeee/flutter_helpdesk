@@ -1,14 +1,12 @@
 // To parse this JSON data, do
 //
-//     final empty = emptyFromJson(jsonString);
+//     final new = newFromJson(jsonString);
 
 import 'dart:convert';
 
-List<New> NewFromJson(String str) =>
-    List<New>.from(json.decode(str).map((x) => New.fromJson(x)));
+List<New> NewFromJson(String str) => List<New>.from(json.decode(str).map((x) => New.fromJson(x)));
 
-String NewToJson(List<New> data) =>
-    json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
+String NewToJson(List<New> data) => json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class New {
   New({
@@ -18,7 +16,9 @@ class New {
     this.name,
     this.issName,
     this.ispName,
-    this.users,
+    this.createby,
+    this.assignment,
+    this.updatedBy,
     this.subject,
     this.description,
     this.createdAt,
@@ -32,7 +32,9 @@ class New {
   String name;
   String issName;
   String ispName;
-  String users;
+  String createby;
+  String assignment;
+  String updatedBy;
   String subject;
   String description;
   DateTime createdAt;
@@ -40,32 +42,36 @@ class New {
   String dmName;
 
   factory New.fromJson(Map<String, dynamic> json) => New(
-        issuesid: json["Issuesid"],
-        trackName: json["TrackName"],
-        subTrackName: json["SubTrackName"],
-        name: json["Name"],
-        issName: json["ISSName"],
-        ispName: json["ISPName"],
-        users: json["Users"],
-        subject: json["Subject"],
-        description: json["Description"],
-        createdAt: DateTime.parse(json["created_at"]),
-        updatedAt: DateTime.parse(json["updated_at"]),
-        dmName: json["DmName"],
-      );
+    issuesid: json["Issuesid"],
+    trackName: json["TrackName"],
+    subTrackName: json["SubTrackName"],
+    name: json["Name"],
+    issName: json["ISSName"],
+    ispName: json["ISPName"],
+    createby: json["Createby"],
+    assignment: json["Assignment"],
+    updatedBy: json["UpdatedBy"],
+    subject: json["Subject"],
+    description: json["Description"],
+    createdAt: DateTime.parse(json["created_at"]),
+    updatedAt: DateTime.parse(json["updated_at"]),
+    dmName: json["DmName"],
+  );
 
   Map<String, dynamic> toJson() => {
-        "Issuesid": issuesid,
-        "TrackName": trackName,
-        "SubTrackName": subTrackName,
-        "Name": name,
-        "ISSName": issName,
-        "ISPName": ispName,
-        "Users": users,
-        "Subject": subject,
-        "Description": description,
-        "created_at": createdAt.toIso8601String(),
-        "updated_at": updatedAt.toIso8601String(),
-        "DmName": dmName,
-      };
+    "Issuesid": issuesid,
+    "TrackName": trackName,
+    "SubTrackName": subTrackName,
+    "Name": name,
+    "ISSName": issName,
+    "ISPName": ispName,
+    "Createby": createby,
+    "Assignment": assignment,
+    "UpdatedBy": updatedBy,
+    "Subject": subject,
+    "Description": description,
+    "created_at": createdAt.toIso8601String(),
+    "updated_at": updatedAt.toIso8601String(),
+    "DmName": dmName,
+  };
 }
