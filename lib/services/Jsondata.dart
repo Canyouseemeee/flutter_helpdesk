@@ -1,3 +1,4 @@
+import 'package:flutter_helpdesk/Models/IssuesAppointments.dart';
 import 'package:flutter_helpdesk/Models/Closed.dart';
 import 'package:flutter_helpdesk/Models/Defer.dart';
 import 'package:flutter_helpdesk/Models/New.dart';
@@ -55,6 +56,24 @@ class Jsondata {
       }
     } catch (e) {
       return List<New>();
+    }
+  }
+
+  static Future<List<IssuesAppointments>> getAppointments() async {
+    const String url = "http://10.57.34.148:8000/api/appointments";
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        if (response.body.isNotEmpty) {
+          final List<IssuesAppointments> appointments = appointmentsFromJson(response.body);
+          return appointments;
+        }
+
+      } else {
+        return List<IssuesAppointments>();
+      }
+    } catch (e) {
+      return List<IssuesAppointments>();
     }
   }
 

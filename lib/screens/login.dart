@@ -150,6 +150,7 @@ class _LoginScreenState extends State<LoginScreen> {
         sharedPreferences.setString("name", jsonData['name']);
         postloginlog(sharedPreferences.getString("username"),
             sharedPreferences.getString("token"));
+        sharedPreferences.setString("team", jsonData['team']);
         // print(sharedPreferences.getString('email'));
       }
     } else {
@@ -175,7 +176,9 @@ class _LoginScreenState extends State<LoginScreen> {
         setState(() {
           _isLoading = false;
           sharedPreferences.setString("expired", jsonData['expired']);
-          print(sharedPreferences.getString("expired"));
+          print(sharedPreferences.getString("expired").replaceAll(" ", ""));
+          sharedPreferences.setString("image", jsonData['image'].toString());
+          // print(sharedPreferences.getString("image").toString());
         });
         Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (BuildContext context) => MainPage()),

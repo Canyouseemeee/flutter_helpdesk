@@ -20,6 +20,9 @@ class Defer {
     this.assignment,
     this.updatedby,
     this.subject,
+    this.tel,
+    this.comname,
+    this.informer,
     this.description,
     this.createdAt,
     this.updatedAt,
@@ -36,6 +39,9 @@ class Defer {
   String assignment;
   String updatedby;
   String subject;
+  String tel;
+  String comname;
+  String informer;
   String description;
   DateTime createdAt;
   DateTime updatedAt;
@@ -53,6 +59,9 @@ class Defer {
     assignment: json["Assignment"],
     updatedby: json["UpdatedBy"],
     subject: json["Subject"],
+    tel: json["Tel"],
+    comname: json["Comname"],
+    informer: json["Informer"],
     description: json["Description"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
@@ -70,6 +79,9 @@ class Defer {
     "Assignment": assignment,
     "UpdatedBy": updatedby,
     "Subject": subject,
+    "Tel": tel,
+    "Comname": comname,
+    "Informer": informer,
     "Description": description,
     "created_at": createdAt,
     "updated_at": updatedAt,

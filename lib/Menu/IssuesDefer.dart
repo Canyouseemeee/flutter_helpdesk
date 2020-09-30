@@ -51,10 +51,14 @@ class _IssuesDeferState extends State<IssuesDefer> {
       setState(() {
         _defer = defer;
         if (_defer.length == 0) {
-          showAlertNullData();
+          // showAlertNullData();
         } else {
           max = _defer.length;
-          _defer = List.generate(10, (index) => _defer[index]);
+          if (_defer.length >10) {
+            _defer = List.generate(10, (index) => _defer[index]);
+          }else{
+            _defer = defer;
+          }
           min = _defer.length;
           _scrollController.addListener(() {
             if (_scrollController.position.pixels ==
@@ -152,9 +156,9 @@ class _IssuesDeferState extends State<IssuesDefer> {
         if (jsonData != null) {
           setState(() {
             _loading = false;
-            String exp = sharedPreferences.getString("expired");
-            DateTime dateTime = DateTime.parse(exp.substring(0, 8) + 'T' + exp.substring(8));
-            var expired = int.parse(formatDate(dateTime, [yyyy, mm, dd, HH, nn, ss]));
+            String exp = sharedPreferences.getString("expired").replaceAll(" ", "");
+            // print(exp);
+            var expired = int.parse(exp);
             var now = int.parse(
                 formatDate(DateTime.now(), [yyyy, mm, dd, HH, nn, ss]));
             // print(expired);
@@ -294,8 +298,15 @@ class _IssuesDeferState extends State<IssuesDefer> {
           itemExtent: 100,
           itemBuilder: (context, index) {
             // Defer _defer[index] = _defer[index];
-            if (index == _defer.length) {
-              return Center(child: CircularProgressIndicator(backgroundColor: Colors.white70,));
+            if (_defer.length == 0) {
+              return Center(child: Text("ไม่พบข้อมูลงาน",style: TextStyle(color: Colors.white70,fontSize: 20),),);
+            }else{
+              if (index == _defer.length && _defer.length > 10 && index > 10) {
+                return Center(child: CircularProgressIndicator(backgroundColor: Colors.white70,));
+              }
+              else if(index == _defer.length && _defer.length <= 10 && index <= 10){
+                return Center(child: Text(""));
+              }
             }
             return GestureDetector(
               child: Center(
@@ -307,7 +318,8 @@ class _IssuesDeferState extends State<IssuesDefer> {
                         height: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(_borderRadius),
-                          color: Color(0xFFf2f6f5),
+                          color: colorTrack(index),
+                          // Color(0xFFf2f6f5),
                           // gradient: LinearGradient(
                           //   colors: [Color(0xFF34558b), Colors.lightBlue],
                           //   begin: Alignment.topLeft,
@@ -319,11 +331,7 @@ class _IssuesDeferState extends State<IssuesDefer> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: Image.asset(
-                                'assets/mac-os.png',
-                                height: 40,
-                                width: 40,
-                              ),
+                              child: imageTrack(index),
                               flex: 2,
                             ),
                             Expanded(
@@ -343,7 +351,7 @@ class _IssuesDeferState extends State<IssuesDefer> {
                                     height: 16,
                                   ),
                                   Text(
-                                    _defer[index].issuesid.toString(),
+                                    "Id : "+_defer[index].issuesid.toString(),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -352,12 +360,12 @@ class _IssuesDeferState extends State<IssuesDefer> {
                               ),
                             ),
                             Expanded(
-                              flex: 5,
+                              flex: 8,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Text(
-                                    _defer[index].trackName,
+                                    "TrackName : "+_defer[index].trackName,
                                     style: TextStyle(
                                         color: Colors.black87,
                                         fontWeight: FontWeight.w700),
@@ -366,8 +374,8 @@ class _IssuesDeferState extends State<IssuesDefer> {
                                     height: 16,
                                   ),
                                   Text(
-                                    formatter.formatInBuddhistCalendarThai(
-                                        _defer[index].updatedAt),
+                                    "Createat : "+formatter.formatInBuddhistCalendarThai(
+                                        _defer[index].createdAt),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -442,5 +450,29 @@ class _IssuesDeferState extends State<IssuesDefer> {
     });
 
     return null;
+  }
+
+  colorTrack(int index) {
+    if (_defer[index].trackName.toString() == "HW") {
+      return Colors.lightBlue;
+    }else{
+      return Colors.lightGreen;
+    }
+  }
+
+  imageTrack(int index) {
+    if (_defer[index].trackName.toString() == "HW") {
+      return Image.asset(
+        'assets/HW.png',
+        height: 30,
+        width: 30,
+      );
+    } else {
+      return Image.asset(
+        'assets/SW.png',
+        height: 40,
+        width: 40,
+      );
+    }
   }
 }

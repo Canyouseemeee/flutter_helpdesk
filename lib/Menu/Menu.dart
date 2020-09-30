@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:date_format/date_format.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_helpdesk/screens/Loading.dart';
@@ -21,8 +22,11 @@ class Menu extends StatefulWidget {
 class _MenuState extends State<Menu> {
   SharedPreferences sharedPreferences;
   String _username;
+  String _name;
+  String _team;
   String _version = "";
   bool _isLoading;
+  String Url;
 
   @override
   void initState() {
@@ -32,6 +36,7 @@ class _MenuState extends State<Menu> {
     });
     checkLoginStatus();
     _settingsection();
+    imageAvatar();
   }
 
   checkLoginStatus() async {
@@ -49,12 +54,13 @@ class _MenuState extends State<Menu> {
         if (jsonData != null) {
           setState(() {
             _isLoading = false;
-            String exp = sharedPreferences.getString("expired");
+            String exp =
+                sharedPreferences.getString("expired").replaceAll(" ", "");
             // print(exp);
-            DateTime dateTime = DateTime.parse(exp.substring(0, 8) + 'T' + exp.substring(8));
-            var expired = int.parse(formatDate(dateTime, [yyyy, mm, dd, HH, nn, ss]));
+            var expired = int.parse(exp);
             var now = int.parse(
                 formatDate(DateTime.now(), [yyyy, mm, dd, HH, nn, ss]));
+            // print(expired);
             // print(now);
             if (expired < now) {
               sharedPreferences.clear();
@@ -79,7 +85,7 @@ class _MenuState extends State<Menu> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Text("Token ของท่านหมดอายุกรุณาทำการล็อคอินใหม่"),
+            title: Text("Token หมดอายุกรุณาทำการล็อคอินใหม่"),
             actions: [
               FlatButton(
                 onPressed: () {
@@ -122,6 +128,24 @@ class _MenuState extends State<Menu> {
             // print(lastedversion);
             if (lastedversion < newVersion) {
               showVersionAlert(_newVersion, _version);
+            }else{
+              // showDialog(
+              //     context: context,
+              //     barrierDismissible: false,
+              //     builder: (context) {
+              //       return AlertDialog(
+              //         title: Text("Update App"),
+              //         content: Text("Your version is the latest version"),
+              //         actions: [
+              //           FlatButton(
+              //             onPressed: () {
+              //               Navigator.pop(context);
+              //             },
+              //             child: Text("OK"),
+              //           ),
+              //         ],
+              //       );
+              //     });
             }
           });
         }
@@ -180,9 +204,38 @@ class _MenuState extends State<Menu> {
   Future<void> _settingsection() async {
     sharedPreferences = await SharedPreferences.getInstance();
     final String username = sharedPreferences.getString("username");
+    final String name = sharedPreferences.getString("name");
+    final String team = sharedPreferences.getString("team");
     setState(() {
       _username = username;
+      _name = name;
+      _team = team;
     });
+
+    // print(imageAvatar());
+    // print(sharedPreferences.getString("image").toString().substring(9).replaceAll("}]", ""));
+  }
+
+  Future<void> imageAvatar() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    // print(sharedPreferences.getString("image").toString().substring(8).replaceAll("}]", ""));
+    final String image = "http://cnmihelpdesk.rama.mahidol.ac.th/storage/" +
+        sharedPreferences
+            .getString("image")
+            .toString()
+            .substring(9)
+            .replaceAll("}]", "");
+    if (sharedPreferences
+            .getString("image")
+            .toString()
+            .substring(9)
+            .replaceAll("}]", "") !=
+        "null") {
+      setState(() {
+        Url = image;
+      });
+    }
+    // print(Url);
   }
 
   @override
@@ -219,17 +272,6 @@ class _MenuState extends State<Menu> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          margin: EdgeInsets.only(right: 285),
-                          width: 40.0,
-                          height: 40.0,
-                          child: FloatingActionButton(
-                              child: Icon(Icons.info),
-                              tooltip: "Check Updated",
-                              onPressed: () {
-                                checkVersion();
-                              }),
-                        ),
-                        Container(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: <Widget>[
@@ -239,15 +281,38 @@ class _MenuState extends State<Menu> {
                                     Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: CircleAvatar(
-                                        backgroundColor: Color(0xFF34558b),
+                                        backgroundColor: Colors.transparent,
                                         radius: 30.0,
-                                        child: Icon(Icons.person),
+                                        backgroundImage: Url == null
+                                            ? NetworkImage(
+                                                // "https://cdn.icon-icons.com/icons2/1674/PNG/512/person_110935.png")
+                                          "https://media1.tenor.com/images/82c6e055245fc8fa7381dc887bf14e62/tenor.gif?itemid=12170592")
+                                            : NetworkImage('${Url}'),
+                                        // backgroundImage: NetworkImage("http://cnmihelpdesk.rama.mahidol.ac.th/storage/"+image),
+
+                                        // child: Image,
                                       ),
                                     ),
                                     Padding(
-                                      padding: const EdgeInsets.all(16.0),
+                                      padding: const EdgeInsets.only(top: 16,left: 16,right: 16),
                                       child: Text(
-                                        '${_username}',
+                                        "Username : "+'${_username}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 16,left: 16,right: 16),
+                                      child: Text(
+                                        "Name : "+'${_name}',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 16,left: 16,right: 16),
+                                      child: Text(
+                                        "Team : "+'${_team}',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold),
                                       ),
@@ -256,6 +321,31 @@ class _MenuState extends State<Menu> {
                                       width: MediaQuery.of(context).size.width,
                                       height: 40.0,
                                       margin: EdgeInsets.only(top: 30),
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 20.0),
+                                      child: RaisedButton.icon(
+                                        color: Colors.amberAccent,
+                                        onPressed: () {
+                                          setState(() {
+                                            checkVersion();
+                                          });
+                                        },
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(5.0),
+                                        ),
+                                        icon: Icon(Icons.system_update,color: Colors.white70,),
+                                        label: Text(
+                                          "CheckforUpdate v" + _version,
+                                          style:
+                                          TextStyle(color: Colors.white70),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: MediaQuery.of(context).size.width,
+                                      height: 40.0,
+                                      margin: EdgeInsets.only(top: 10),
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 20.0),
                                       child: RaisedButton(
@@ -344,8 +434,8 @@ class _MenuState extends State<Menu> {
         barrierDismissible: false,
         builder: (context) {
           return AlertDialog(
-            title: Text("${_prefs.getString("username")} to logout"),
-            content: Text("Are you sure"),
+            title: Text("${_prefs.getString("username")} ล็อคเอ้าท์"),
+            content: Text("คุณต้องการล็อคเอ้าท์ใช่หรือไม่ ?"),
             actions: [
               FlatButton(
                 onPressed: () {
@@ -357,13 +447,13 @@ class _MenuState extends State<Menu> {
                     (Route<dynamic> route) => false,
                   );
                 },
-                child: Text("Yes"),
+                child: Text("ใช่"),
               ),
               FlatButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text("No"),
+                child: Text("ไม่"),
               ),
             ],
           );

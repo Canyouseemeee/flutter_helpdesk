@@ -20,6 +20,9 @@ class New {
     this.assignment,
     this.updatedBy,
     this.subject,
+    this.tel,
+    this.comname,
+    this.informer,
     this.description,
     this.createdAt,
     this.updatedAt,
@@ -36,6 +39,9 @@ class New {
   String assignment;
   String updatedBy;
   String subject;
+  String tel;
+  String comname;
+  String informer;
   String description;
   DateTime createdAt;
   DateTime updatedAt;
@@ -52,6 +58,9 @@ class New {
     assignment: json["Assignment"],
     updatedBy: json["UpdatedBy"],
     subject: json["Subject"],
+    tel: json["Tel"],
+    comname: json["Comname"],
+    informer: json["Informer"],
     description: json["Description"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
@@ -69,6 +78,9 @@ class New {
     "Assignment": assignment,
     "UpdatedBy": updatedBy,
     "Subject": subject,
+    "Tel": tel,
+    "Comname": comname,
+    "Informer": informer,
     "Description": description,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),

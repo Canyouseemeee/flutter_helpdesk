@@ -174,8 +174,8 @@ class _MainPageState extends State<MainPage> {
 
     NotificationDetails notificationDetails =
     NotificationDetails(androidNotificationDetails, iosNotificationDetails);
-    await flutterLocalNotificationsPlugin.schedule(1, notificationid.toString()+" "+notificationsubject.toString(),
-        notificationtracker.toString()+" "+notificationuser.toString(), timeDelayed, notificationDetails);
+    await flutterLocalNotificationsPlugin.schedule(1, "ID : "+notificationid.toString()+" Subject : "+notificationsubject.toString(),
+        "Tracker : "+notificationtracker.toString()+" CreateBy : "+notificationuser.toString(), timeDelayed, notificationDetails);
     // print(notificationid.toString());
     // print(notificationsubject.toString());
     // print(notificationtracker.toString());

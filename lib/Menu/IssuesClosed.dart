@@ -47,16 +47,24 @@ class _IssuesClosedState extends State<IssuesClosed> {
     Jsondata.getClosed().then((closed) {
       setState(() {
         _closed = closed;
-        max = _closed.length;
-        _closed = List.generate(10, (index) => _closed[index]);
-        min = _closed.length;
-        _scrollController.addListener(() {
-          if (_scrollController.position.pixels ==
-              _scrollController.position.maxScrollExtent) {
-            getMoreData();
+        if (_closed.length == 0) {
+          // showAlertNullData();
+        } else {
+          max = _closed.length;
+          if (_closed.length > 10) {
+            _closed = List.generate(10, (index) => _closed[index]);
+          } else {
+            _closed = closed;
           }
-        });
-        _loading = false;
+          min = _closed.length;
+          _scrollController.addListener(() {
+            if (_scrollController.position.pixels ==
+                _scrollController.position.maxScrollExtent) {
+              getMoreData();
+            }
+          });
+          _loading = false;
+        }
       });
     });
   }
@@ -144,12 +152,12 @@ class _IssuesClosedState extends State<IssuesClosed> {
         if (jsonData != null) {
           setState(() {
             _loading = false;
-            String exp = sharedPreferences.getString("expired");
+            String exp = sharedPreferences.getString("expired").replaceAll(" ", "");
             // print(exp);
-            DateTime dateTime = DateTime.parse(exp.substring(0, 8) + 'T' + exp.substring(8));
-            var expired = int.parse(formatDate(dateTime, [yyyy, mm, dd, HH, nn, ss]));
+            var expired = int.parse(exp);
             var now = int.parse(
                 formatDate(DateTime.now(), [yyyy, mm, dd, HH, nn, ss]));
+            // print(expired);
             // print(now);
             if (expired < now) {
               sharedPreferences.clear();
@@ -282,11 +290,15 @@ class _IssuesClosedState extends State<IssuesClosed> {
           itemCount: null == _closed ? 0 : _closed.length + 1,
           itemExtent: 100,
           itemBuilder: (context, index) {
-            if (index == _closed.length) {
-              return Center(
-                  child: CircularProgressIndicator(
-                backgroundColor: Colors.white70,
-              ));
+            if (_closed.length == 0) {
+              return Center(child: Text("ไม่พบข้อมูลงาน",style: TextStyle(color: Colors.white70,fontSize: 20),),);
+            }else{
+              if (index == _closed.length && _closed.length > 10 && index > 10) {
+                return Center(child: CircularProgressIndicator(backgroundColor: Colors.white70,));
+              }
+              else if(index == _closed.length && _closed.length <= 10 && index <= 10){
+                return Center(child: Text(""));
+              }
             }
             // Closed _closed[index] = _closed[index];
             return GestureDetector(
@@ -299,7 +311,8 @@ class _IssuesClosedState extends State<IssuesClosed> {
                         height: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(_borderRadius),
-                          color: Color(0xFFf2f6f5),
+                          color: colorTrack(index),
+                          // Color(0xFFf2f6f5),
                           // gradient: LinearGradient(
                           //   colors: [Color(0xFF34558b), Colors.lightBlue],
                           //   begin: Alignment.topLeft,
@@ -311,11 +324,7 @@ class _IssuesClosedState extends State<IssuesClosed> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: Image.asset(
-                                'assets/mac-os.png',
-                                height: 40,
-                                width: 40,
-                              ),
+                              child: imageTrack(index),
                               flex: 2,
                             ),
                             Expanded(
@@ -335,7 +344,7 @@ class _IssuesClosedState extends State<IssuesClosed> {
                                     height: 16,
                                   ),
                                   Text(
-                                    _closed[index].issuesid.toString(),
+                                    "Id : "+_closed[index].issuesid.toString(),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -344,13 +353,13 @@ class _IssuesClosedState extends State<IssuesClosed> {
                               ),
                             ),
                             Expanded(
-                              flex: 5,
+                              flex: 8,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: <Widget>[
                                   Text(
-                                    _closed[index].trackName.toString(),
+                                    "TrackName : "+_closed[index].trackName.toString(),
                                     style: TextStyle(
                                         color: Colors.black87,
                                         fontWeight: FontWeight.w700),
@@ -359,8 +368,8 @@ class _IssuesClosedState extends State<IssuesClosed> {
                                     height: 16,
                                   ),
                                   Text(
-                                    formatter.formatInBuddhistCalendarThai(
-                                        _closed[index].updatedAt),
+                                    "Closedat : "+formatter.formatInBuddhistCalendarThai(
+                                        _closed[index].createAt),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -418,5 +427,29 @@ class _IssuesClosedState extends State<IssuesClosed> {
     });
 
     return null;
+  }
+
+  colorTrack(int index) {
+    if (_closed[index].trackName.toString() == "HW") {
+      return Colors.lightBlue;
+    }else{
+      return Colors.lightGreen;
+    }
+  }
+
+  imageTrack(int index) {
+    if (_closed[index].trackName.toString() == "HW") {
+      return Image.asset(
+        'assets/HW.png',
+        height: 30,
+        width: 30,
+      );
+    } else {
+      return Image.asset(
+        'assets/SW.png',
+        height: 40,
+        width: 40,
+      );
+    }
   }
 }

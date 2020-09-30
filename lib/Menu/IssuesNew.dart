@@ -3,9 +3,12 @@ import 'dart:convert';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_helpdesk/Menu/Appointments.dart';
 import 'package:flutter_helpdesk/Menu/IssuesDetail.dart';
 import 'package:flutter_helpdesk/Models/New.dart';
 import 'package:flutter_helpdesk/screens/Loading.dart';
+import 'package:flutter_helpdesk/services/Constants.dart';
+import 'package:flutter_helpdesk/services/Deviceinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -46,16 +49,24 @@ class _IssuesNewState extends State<IssuesNew> {
     Jsondata.getNew().then((news) {
       setState(() {
         _new = news;
-        max = _new.length;
-        // _new = List.generate(10, (index) => _new[index]);
-        min = _new.length;
-        _scrollController.addListener(() {
-          if (_scrollController.position.pixels ==
-              _scrollController.position.maxScrollExtent) {
-            getMoreData();
+        if (_new.length == 0) {
+          // showAlertNullData();
+        } else {
+          max = _new.length;
+          if (_new.length > 10) {
+            _new = List.generate(10, (index) => _new[index]);
+          } else {
+            _new = news;
           }
-        });
-        _loading = false;
+          min = _new.length;
+          _scrollController.addListener(() {
+            if (_scrollController.position.pixels ==
+                _scrollController.position.maxScrollExtent) {
+              getMoreData();
+            }
+          });
+          _loading = false;
+        }
       });
     });
   }
@@ -143,12 +154,13 @@ class _IssuesNewState extends State<IssuesNew> {
         if (jsonData != null) {
           setState(() {
             _loading = false;
-            String exp = sharedPreferences.getString("expired");
+            String exp =
+                sharedPreferences.getString("expired").replaceAll(" ", "");
             // print(exp);
-            DateTime dateTime = DateTime.parse(exp.substring(0, 8) + 'T' + exp.substring(8));
-            var expired = int.parse(formatDate(dateTime, [yyyy, mm, dd, HH, nn, ss]));
+            var expired = int.parse(exp);
             var now = int.parse(
                 formatDate(DateTime.now(), [yyyy, mm, dd, HH, nn, ss]));
+            // print(expired);
             // print(now);
             if (expired < now) {
               sharedPreferences.clear();
@@ -197,21 +209,23 @@ class _IssuesNewState extends State<IssuesNew> {
       appBar: AppBar(
         title: Align(
             alignment: Alignment.center,
-            child: Text(_loading ? 'Loading...' : "New")),
+            child: Padding(
+                padding: EdgeInsets.only(left: 40),
+                child: Text(_loading ? 'Loading...' : "New"))),
+        actions: <Widget>[
+          PopupMenuButton<String>(
+            onSelected: choiceAction,
+            itemBuilder: (BuildContext context) {
+              return Constants.choices.map((String choice) {
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: Text(choice),
+                );
+              }).toList();
+            },
+          )
+        ],
         backgroundColor: Color(0xFF34558b),
-        // actions: <Widget>[
-        //   IconButton(
-        //     icon: Icon(Icons.exit_to_app),
-        //     onPressed: () {
-        //       sharedPreferences.clear();
-        //       sharedPreferences.commit();
-        //       Navigator.of(context).pushAndRemoveUntil(
-        //           MaterialPageRoute(
-        //               builder: (BuildContext context) => LoginScreen()),
-        //           (Route<dynamic> route) => false);
-        //     },
-        //   ),
-        // ],
       ),
       body: (_loading
           ? new Center(
@@ -230,14 +244,24 @@ class _IssuesNewState extends State<IssuesNew> {
           itemCount: null == _new ? 0 : _new.length + 1,
           itemExtent: 100,
           itemBuilder: (context, index) {
-            if (index == _new.length) {
-              if (index > _new.length - 1) {
-                return null;
-              }
+            if (_new.length == 0) {
               return Center(
-                  child: CircularProgressIndicator(
-                backgroundColor: Colors.white70,
-              ));
+                child: Text(
+                  "ไม่พบข้อมูลงาน",
+                  style: TextStyle(color: Colors.white70, fontSize: 20),
+                ),
+              );
+            } else {
+              if (index == _new.length && _new.length > 10 && index > 10) {
+                return Center(
+                    child: CircularProgressIndicator(
+                  backgroundColor: Colors.white70,
+                ));
+              } else if (index == _new.length &&
+                  _new.length <= 10 &&
+                  index <= 10) {
+                return Center(child: Text(""));
+              }
             }
             // New _new[index] = _new[index];
             return GestureDetector(
@@ -250,7 +274,8 @@ class _IssuesNewState extends State<IssuesNew> {
                         height: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(_borderRadius),
-                          color: Color(0xFFf2f6f5),
+                          color: colorTrack(index),
+                          // Color(0xFFf2f6f5),
                           // gradient: LinearGradient(
                           //   colors: [Color(0xFF34558b), Colors.lightBlue],
                           //   begin: Alignment.topLeft,
@@ -262,11 +287,12 @@ class _IssuesNewState extends State<IssuesNew> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: Image.asset(
-                                'assets/mac-os.png',
-                                height: 40,
-                                width: 40,
-                              ),
+                              child: imageTrack(index),
+                              // Image.asset(
+                              //   'assets/mac-os.png',
+                              //   height: 40,
+                              //   width: 40,
+                              // ),
                               flex: 2,
                             ),
                             Expanded(
@@ -286,7 +312,7 @@ class _IssuesNewState extends State<IssuesNew> {
                                     height: 16,
                                   ),
                                   Text(
-                                    _new[index].issuesid.toString(),
+                                    "Id : " + _new[index].issuesid.toString(),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -295,12 +321,12 @@ class _IssuesNewState extends State<IssuesNew> {
                               ),
                             ),
                             Expanded(
-                              flex: 4,
+                              flex: 8,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Text(
-                                    _new[index].trackName,
+                                    "TrackName : " + _new[index].trackName,
                                     style: TextStyle(
                                         color: Colors.black87,
                                         fontWeight: FontWeight.w700),
@@ -309,8 +335,9 @@ class _IssuesNewState extends State<IssuesNew> {
                                     height: 16,
                                   ),
                                   Text(
-                                    formatter.formatInBuddhistCalendarThai(
-                                        _new[index].updatedAt),
+                                    "Createat : " +
+                                        formatter.formatInBuddhistCalendarThai(
+                                            _new[index].createdAt),
                                     style: TextStyle(
                                         color: Colors.black45,
                                         fontWeight: FontWeight.w700),
@@ -375,5 +402,42 @@ class _IssuesNewState extends State<IssuesNew> {
     });
 
     return null;
+  }
+
+  colorTrack(int index) {
+    if (_new[index].trackName.toString() == "HW") {
+      return Colors.lightBlue;
+    } else {
+      return Colors.lightGreen;
+    }
+  }
+
+  imageTrack(int index) {
+    if (_new[index].trackName.toString() == "HW") {
+      return Image.asset(
+        'assets/HW.png',
+        height: 30,
+        width: 30,
+      );
+    } else {
+      return Image.asset(
+        'assets/SW.png',
+        height: 40,
+        width: 40,
+      );
+    }
+  }
+
+  void choiceAction(String choice) {
+    if (choice == Constants.Appointments) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => Appointments()),
+      );
+    }
+    // else if (choice == Constants.SignOut) {
+    //   print('SignOut');
+    // }
   }
 }
