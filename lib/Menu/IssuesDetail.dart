@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter_helpdesk/Menu/IssuesCheckin.dart';
+import 'package:flutter_helpdesk/services/Deviceinfo.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Models/Closed.dart';
@@ -24,6 +27,8 @@ class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
   Defer defer;
 
   _IssuesDeferDetailState(this.defer);
+
+  String statuscheckin;
 
   var formatter = DateFormat.yMd().add_jm();
 
@@ -303,7 +308,7 @@ class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
                 ),
                 Container(
                   child: RaisedButton(
-                    color: Colors.redAccent,
+                    color: Colors.green,
                     onPressed: () {
                       showAlertUpdate(defer.issuesid);
                     },
@@ -311,7 +316,7 @@ class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                     child: Text(
-                      "Closed Issues",
+                      "Checkin Issues",
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),
@@ -408,10 +413,40 @@ class IssuesNewDetail extends StatefulWidget {
 
 class _IssuesNewDetailState extends State<IssuesNewDetail> {
   New news;
+  String statuscheckin;
 
   _IssuesNewDetailState(this.news);
 
   var formatter = DateFormat.yMd().add_jm();
+
+  getstatus(int issuesid) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") != null) {
+      Map data = {
+        'issuesid': issuesid.toString(),
+      };
+      var jsonData = null;
+      var response = await http
+          .post("http://10.57.34.148:8000/api/issues-getstatus", body: data);
+      if (response.statusCode == 200) {
+        jsonData = json.decode(response.body);
+        if (jsonData != null) {
+          sharedPreferences.setString(
+              "checkstatus", jsonData['status'].toString());
+          // print(sharedPreferences.getString("checkstatus"));
+          if (sharedPreferences.getString("checkstatus") != null) {
+            statuscheckin = sharedPreferences
+                .getString("checkstatus")
+                .substring(10)
+                .replaceAll("}]", "");
+            print(statuscheckin);
+          }
+        }
+      } else {
+        print(response.body);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -422,7 +457,6 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
       ),
       body: ListView(
         children: <Widget>[
-          // _heaaderImageSection(),
           _titleSection(context),
         ],
       ),
@@ -693,15 +727,20 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
                 ),
                 Container(
                   child: RaisedButton(
-                    color: Colors.redAccent,
+                    color: Colors.green,
                     onPressed: () {
-                      showAlertUpdate(news.issuesid);
+                       Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => IssuesCheckin(news.issuesid.toString())),
+                      );
+                      // showAlertUpdate(news.issuesid);
                     },
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5.0),
                     ),
                     child: Text(
-                      "Closed Issues",
+                      "CheckIn",
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),
@@ -712,75 +751,6 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
         ),
       );
 
-  showAlertUpdate(int issuesid) async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("ท่านต้องการปิดงานใช่หรือไม่"),
-            actions: [
-              FlatButton(
-                onPressed: () {
-                  updatestatus(issuesid);
-                  Navigator.pop(context);
-                },
-                child: Text("Yes"),
-              ),
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("No"),
-              ),
-            ],
-          );
-        });
-  }
-
-  updatestatus(int issuesid) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") != null) {
-      Map data = {
-        'issuesid': issuesid.toString(),
-        'user': sharedPreferences.getString("name"),
-      };
-      var jsonData = null;
-      var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-updatestatus",
-          body: data);
-      if (response.statusCode == 200) {
-        jsonData = json.decode(response.body);
-        if (jsonData != null) {
-          showAlertsuccess();
-        }
-      } else {
-        print(response.body);
-      }
-    }
-  }
-
-  showAlertsuccess() async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("อัพเดทสำเร็จ"),
-            actions: [
-              FlatButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => MainPage()),
-                      (Route<dynamic> route) => false);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        });
-  }
 }
 
 //Todo Closed

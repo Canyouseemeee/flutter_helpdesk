@@ -40,6 +40,7 @@ class _AppointmentsState extends State<Appointments> {
       setState(() {
         _appointments = appointment;
         if (_appointments.length == 0) {
+          _loading = false;
           // showAlertNullData();
         } else {
           max = _appointments.length;
