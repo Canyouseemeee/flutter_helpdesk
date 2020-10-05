@@ -1,8 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_helpdesk/Menu/IssuesCheckin.dart';
+import 'package:flutter_helpdesk/Menu/IssuesComment.dart';
 import 'package:flutter_helpdesk/services/Deviceinfo.dart';
+import 'package:flutter_helpdesk/services/Jsondata.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Models/Closed.dart';
@@ -414,51 +417,51 @@ class IssuesNewDetail extends StatefulWidget {
 class _IssuesNewDetailState extends State<IssuesNewDetail> {
   New news;
   String statuscheckin;
-
+  String count;
   _IssuesNewDetailState(this.news);
-
+  DateTime time = DateTime.now();
+  bool _disposed = false;
+  bool _loading;
   var formatter = DateFormat.yMd().add_jm();
 
-  getstatus(int issuesid) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") != null) {
-      Map data = {
-        'issuesid': issuesid.toString(),
-      };
-      var jsonData = null;
-      var response = await http
-          .post("http://10.57.34.148:8000/api/issues-getstatus", body: data);
-      if (response.statusCode == 200) {
-        jsonData = json.decode(response.body);
-        if (jsonData != null) {
-          sharedPreferences.setString(
-              "checkstatus", jsonData['status'].toString());
-          // print(sharedPreferences.getString("checkstatus"));
-          if (sharedPreferences.getString("checkstatus") != null) {
-            statuscheckin = sharedPreferences
-                .getString("checkstatus")
-                .substring(10)
-                .replaceAll("}]", "");
-            print(statuscheckin);
-          }
-        }
-      } else {
-        print(response.body);
-      }
-    }
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loading = true;
+    Timer(Duration(seconds: 1), () {
+      if (!_disposed)
+        setState(() {
+          time = time.add(Duration(seconds: -1));
+        });
+    });
+    getCommentCount();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _disposed = true;
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Detail"),
+        title: Text(_loading ? 'Loading...' : "Detail"),
         backgroundColor: Color(0xFF34558b),
       ),
-      body: ListView(
+      body: (_loading
+          ? new Center(
+          child: new CircularProgressIndicator(
+            backgroundColor: Colors.white70,
+          ))
+          : ListView(
         children: <Widget>[
           _titleSection(context),
-        ],
+        ]
+      )
       ),
       backgroundColor: Color(0xFF34558b),
     );
@@ -466,17 +469,41 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
 
   _heaaderImageSection() {
     if (news.trackName.toString() == "HW") {
-      return Image.asset(
-        'assets/HW.png',
-        height: 30,
-        width: 30,
+      return Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Image.asset(
+          'assets/HW.png',
+          height: 40,
+          width: 40,
+        ),
       );
     } else {
-      return Image.asset(
-        'assets/SW.png',
-        height: 40,
-        width: 40,
+      return Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Image.asset(
+          'assets/SW.png',
+          height: 40,
+          width: 40,
+        ),
       );
+    }
+  }
+
+  getCommentCount() async {
+    Map data = {'issuesid': news.issuesid.toString()};
+    var jsonData = null;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var response = await http
+        .post("http://10.57.34.148:8000/api/issues-getcountComment", body: data);
+    if (response.statusCode == 200) {
+      jsonData = json.decode(response.body);
+      if (jsonData != null) {
+        _loading = false;
+          sharedPreferences.setString('count', jsonData['count'].toString());
+          count = sharedPreferences.getString('count');
+      }
+    } else {
+      print(response.body);
     }
   }
 
@@ -491,12 +518,40 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
                 SizedBox(
                   height: 16,
                 ),
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Issuesid : " + news.issuesid.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
+                Row(
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.only(left: 150),
+                      child: Align(
+                        alignment: Alignment.center,
+                        child: Text(
+                          "Issuesid : " + news.issuesid.toString(),
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 50),
+                      child: RaisedButton(
+                        color: Colors.green,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    IssuesCheckin(news.issuesid.toString())),
+                          );
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        child: Text(
+                          "CheckIn",
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(
                   height: 16,
@@ -725,23 +780,35 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
                     ),
                   ],
                 ),
-                Container(
-                  child: RaisedButton(
-                    color: Colors.green,
-                    onPressed: () {
-                       Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => IssuesCheckin(news.issuesid.toString())),
-                      );
-                      // showAlertUpdate(news.issuesid);
-                    },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
-                    ),
-                    child: Text(
-                      "CheckIn",
-                      style: TextStyle(color: Colors.white70),
+                Center(
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: 50.0,
+                    margin: EdgeInsets.all(10),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 80.0),
+                    child:
+                    RaisedButton(
+                      color: Colors.pink,
+                      onPressed: () {
+                        setState(() {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    IssuesComment(news.issuesid.toString())),
+                          );
+                        });
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                        BorderRadius.circular(30.0),
+                      ),
+                      child: Text(
+                        "Comment ("+count+")",
+                        style:
+                        TextStyle(color: Colors.white70),
+                      ),
                     ),
                   ),
                 ),
@@ -750,7 +817,6 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
           ),
         ),
       );
-
 }
 
 //Todo Closed

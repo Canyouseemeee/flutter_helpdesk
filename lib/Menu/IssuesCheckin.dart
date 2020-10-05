@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:buddhist_datetime_dateformat/buddhist_datetime_dateformat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_helpdesk/Models/Checkin.dart';
-import 'package:flutter_helpdesk/Models/New.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +22,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
   _IssuesCheckinState(this.news);
   bool _loading;
   SharedPreferences sharedPreferences;
-  final double _borderRadius = 24;
+  final double _borderRadius = 25;
   int _currentMax = 10;
   var max;
   var min;
@@ -30,6 +31,8 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
   List<Checkin> _checkin;
   DateTime time = DateTime.now();
   bool _disposed = false;
+  TextEditingController commentController = new TextEditingController();
+
 
   static Future<List<Checkin>> getCheckin(String news) async {
     Map data = {
@@ -163,6 +166,33 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
         });
   }
 
+  showAlertCheckout(String news) async {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("ท่านต้องการปิดงานหรือสานงานต่อ ?"),
+            actions: [
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showDialog();
+                },
+                child: Text("ปิดงาน"),
+              ),
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showDialog2();
+                },
+                child: Text("สานงานต่อ"),
+              ),
+            ],
+          );
+        });
+  }
+
   poststatus(String news) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     if (sharedPreferences.getString("token") != null) {
@@ -173,6 +203,50 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       var jsonData = null;
       var response = await http
           .post("http://10.57.34.148:8000/api/issues-poststatus", body: data);
+      if (response.statusCode == 200) {
+        jsonData = json.decode(response.body);
+        if (jsonData != null) {
+
+        }
+      } else {
+        print(response.body);
+      }
+    }
+  }
+
+  closedstatus(String news,String comment) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") != null) {
+      Map data = {
+        'issuesid': news.toString(),
+        'user': sharedPreferences.getString("name"),
+        'comment': comment,
+      };
+      var jsonData = null;
+      var response = await http
+          .post("http://10.57.34.148:8000/api/issues-checkclosedstatus", body: data);
+      if (response.statusCode == 200) {
+        jsonData = json.decode(response.body);
+        if (jsonData != null) {
+
+        }
+      } else {
+        print(response.body);
+      }
+    }
+  }
+
+  keepstatus(String news,String comment) async {
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    if (sharedPreferences.getString("token") != null) {
+      Map data = {
+        'issuesid': news.toString(),
+        'user': sharedPreferences.getString("name"),
+        'comment': comment,
+      };
+      var jsonData = null;
+      var response = await http
+          .post("http://10.57.34.148:8000/api/issues-checkkeepstatus", body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
         if (jsonData != null) {
@@ -205,6 +279,93 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
         });
   }
 
+  showAlertupdatesuccess() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("อัพเดทสำเร็จ"),
+            actions: [
+              FlatButton(
+                onPressed: (){
+                  Navigator.pop(context);
+                  Navigator.pop(context);
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        });
+  }
+
+  _showDialog() async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      child: new AlertDialog(
+        title: Text('Comment'),
+        content: Stack(
+          children:<Widget>[
+            TextField(
+              keyboardType: TextInputType.multiline,
+              maxLines: null,
+              controller: commentController,
+              decoration: InputDecoration(hintText: "Comment",icon: Icon(Icons.comment)),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          new FlatButton(
+            child: new Text('SAVE'),
+            onPressed: () {
+              closedstatus(news,commentController.text);
+              Navigator.pop(context);
+              showAlertupdatesuccess();
+            },
+          ),
+          new FlatButton(
+            child: new Text('Close'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  _showDialog2() async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      child: new AlertDialog(
+        title: Text('Comment'),
+        content: TextField(
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
+          controller: commentController,
+          decoration: InputDecoration(hintText: "Comment",icon: Icon(Icons.comment)),
+        ),
+        actions: <Widget>[
+          new FlatButton(
+            child: new Text('SAVE'),
+            onPressed: () {
+              keepstatus(news,commentController.text);
+              Navigator.pop(context);
+              showAlertupdatesuccess();
+            },
+          ),
+          new FlatButton(
+            child: new Text('Close'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
 
   @override
@@ -225,6 +386,36 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
               backgroundColor: Colors.white70,
             ))
           : _showJsondata()),
+        floatingActionButton: Padding(
+          padding: EdgeInsets.only(left: 40),
+          child: Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: 50.0,
+              margin: EdgeInsets.only(top: 650),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 80.0),
+              child:
+              RaisedButton(
+                color: Colors.green,
+                onPressed: () {
+                  setState(() {
+                    showAlertUpdate(news);
+                  });
+                },
+                shape: RoundedRectangleBorder(
+                  borderRadius:
+                  BorderRadius.circular(30.0),
+                ),
+                child: Text(
+                  "Checkin",
+                  style:
+                  TextStyle(color: Colors.white70),
+                ),
+              ),
+            ),
+          ),
+        ),
       backgroundColor: Color(0xFF34558b),
     );
   }
@@ -238,63 +429,18 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       itemBuilder: (context, index) {
         if (_checkin.length == 0) {
           return Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: 50.0,
-              margin: EdgeInsets.only(top: 10),
-              padding: EdgeInsets.symmetric(
-                  horizontal: 80.0),
-              child: RaisedButton(
-                color: Colors.green,
-                onPressed: () {
-                  setState(() {
-                    showAlertUpdate(news);
-                  });
-                },
-                shape: RoundedRectangleBorder(
-                  borderRadius:
-                  BorderRadius.circular(5.0),
-                ),
-                child: Text(
-                  "Checkin",
-                  style:
-                  TextStyle(color: Colors.white70),
-                ),
-              ),
+            child:
+            Text(
+              "ไม่พบข้อมูลงาน",
+              style: TextStyle(color: Colors.white70, fontSize: 20),
             ),
-            // Text(
-            //   "ไม่พบข้อมูลงาน",
-            //   style: TextStyle(color: Colors.white70, fontSize: 20),
-            // ),
           );
         } else {
-          if (index == _checkin.length) {
-            return  Center(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: 5.0,
-                margin: EdgeInsets.only(top: 10),
-                padding: EdgeInsets.symmetric(
-                    horizontal: 20.0),
-                child: RaisedButton(
-                  color: Colors.green,
-                  onPressed: () {
-                    setState(() {
-                      // _showLogoutAlertDialog();
-                    });
-                  },
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                    BorderRadius.circular(5.0),
-                  ),
-                  child: Text(
-                    "Checkin",
-                    style:
-                    TextStyle(color: Colors.white70),
-                  ),
-                ),
-              ),
-            );
+          if (index == _checkin.length && _checkin.length > 10 && index > 10) {
+            return Center(
+                child: CircularProgressIndicator(
+                  backgroundColor: Colors.white70,
+                ));
           } else if (index == _checkin.length &&
               _checkin.length <= 10 &&
               index <= 10) {
@@ -311,7 +457,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
                   Container(
                     height: 120,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(_borderRadius),
+                      borderRadius: BorderRadius.circular(15.0),
                       color:
                       Color(0xFFf2f6f5),
                       // gradient: LinearGradient(
@@ -326,40 +472,38 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
                       children: <Widget>[
                         Expanded(
                           flex: 4,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                "Cid : "+_checkin[index].checkinid.toString(),
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                              SizedBox(
-                                height: 16,
-                              ),
-                              Text(
-                                "Id : " + _checkin[index].issuesid.toString(),
-                                style: TextStyle(
-                                    color: Colors.black45,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                            ],
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Text(
+                                  "Cid : "+_checkin[index].checkinid.toString(),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                SizedBox(
+                                  height: 16,
+                                ),
+                                Text(
+                                  "Id : " + _checkin[index].issuesid.toString(),
+                                  style: TextStyle(
+                                      color: Colors.black45,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                         Expanded(
-                          flex: 8,
+                          flex: 9,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
-                              Text(
-                                "Status : " + _checkin[index].status.toString(),
-                                style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w700),
-                              ),
+                              TextStatus(index),
                               SizedBox(
                                 height: 16,
                               ),
@@ -374,11 +518,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
                             ],
                           ),
                         ),
-                        Icon(
-                          Icons.keyboard_arrow_right,
-                          color: Colors.black87,
-                          size: 30,
-                        ),
+                        showButton(index),
                       ],
                     ),
                   ),
@@ -432,4 +572,87 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
 
     return null;
   }
+
+  TextStatus(int index){
+    if (_checkin[index].status == 1) {
+     return Text(
+        "Status : Active",
+        style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700),
+      );
+    }else if(_checkin[index].status == 2){
+      return Text(
+        "Status : Closed",
+        style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700),
+      );
+    }else if(_checkin[index].status == 3){
+      return Text(
+        "Status : Keep on",
+        style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700),
+      );
+    }
+  }
+
+  showButton(int index){
+    if (_checkin[index].status == 1) {
+      return Padding(
+        padding: EdgeInsets.all(4),
+        child: RaisedButton(
+          color: Colors.red,
+          onPressed: () {
+            setState(() {
+              // showAlertUpdate(news);
+              showAlertCheckout(news);
+            });
+          },
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(30.0),
+          ),
+          child: Text(
+            "CheckOut",
+            style:
+            TextStyle(color: Colors.white70),
+          ),
+        ),
+      );
+    }else if(_checkin[index].status == 2){
+      return Text(
+        "",
+        style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w700),
+      );
+    }else if(_checkin[index].status == 3){
+      return Padding(
+        padding: EdgeInsets.all(4),
+        child: RaisedButton(
+          color: Colors.red,
+          onPressed: () {
+            setState(() {
+              // showAlertUpdate(news);
+              showAlertCheckout(news);
+            });
+          },
+          shape: RoundedRectangleBorder(
+            borderRadius:
+            BorderRadius.circular(30.0),
+          ),
+          child: Text(
+            "CheckOut",
+            style:
+            TextStyle(color: Colors.white70),
+          ),
+        ),
+      );
+    }
+
+  }
+
+
 }

@@ -41,6 +41,7 @@ dependencies:
   date_format: ^1.0.8
   device_info: ^0.4.2+7
   flutter_local_notifications: ^1.4.4+2
+  image_picker: ^0.6.7+11
 
 
 
