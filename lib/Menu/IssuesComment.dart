@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_helpdesk/Models/Comment.dart';
 import 'package:intl/intl.dart';
@@ -36,13 +37,14 @@ class _IssuesCommentState extends State<IssuesComment> {
   bool _disposed = false;
   TextEditingController commentController = new TextEditingController();
   File imageFile;
-  String base64Image;
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  String _commenttext = "";
 
   static Future<List<Comment>> getComment(String news) async {
     Map data = {
       'issuesid': news,
     };
-    const String url = "http://10.57.34.148:8000/api/issues-getComment";
+    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getComment";
     try {
       final response = await http.post(url, body: data);
       if (response.statusCode == 200) {
@@ -166,46 +168,53 @@ class _IssuesCommentState extends State<IssuesComment> {
 
   postcomment(String news, File image) async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    String fileName = image.path.split('/').last;
-    // if (image != null) {
+    if (image != null) {
+      String fileName = image.path.split('/').last;
       if (sharedPreferences.getString("token") != null) {
-        Map data = {
+        var data = FormData.fromMap({
           'issuesid': news,
           'user': sharedPreferences.getString("name"),
           'comment': commentController.text,
-          'filename': fileName,
-          'image': base64Image,
-        };
-        var jsonData = null;
-        var response = await http
-            .post("http://10.57.34.148:8000/api/issues-postComment", body: data);
-        if (response.statusCode == 200) {
-          jsonData = json.decode(response.body);
-          if (jsonData != null) {}
-        } else {
-          print(response.body);
-        }
+          "image": await MultipartFile.fromFile(
+            image.path,
+            filename: fileName,
+          ),
+        });
+        Dio dio = new Dio();
+        await dio
+            .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postComment", data: data)
+            .then((response) => print(response))
+            .catchError((error) => print(error));
       }
-    // } else {
-    //   if (sharedPreferences.getString("token") != null) {
-    //     Map data = {
-    //       'issuesid': news.toString(),
-    //       'user': sharedPreferences.getString("name"),
-    //       'comment': commentController.text,
-    //       'filename': "",
-    //       'image': "",
-    //     };
-    //     var jsonData = null;
-    //     var response = await http
-    //         .post("http://10.57.34.148:8000/api/issues-poststatus", body: data);
-    //     if (response.statusCode == 200) {
-    //       jsonData = json.decode(response.body);
-    //       if (jsonData != null) {}
-    //     } else {
-    //       print(response.body);
-    //     }
-    //   }
-    // }
+    }else {
+      if (sharedPreferences.getString("token") != null) {
+        var data = FormData.fromMap({
+          'issuesid': news,
+          'user': sharedPreferences.getString("name"),
+          'comment': commentController.text,
+          "image": null,
+        });
+        Dio dio = new Dio();
+        await dio
+            .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postComment", data: data)
+            .then((response) => print(response))
+            .catchError((error) => print(error));
+      }
+    }
+  }
+
+  poststatuscomment(String commentid) async {
+    Map data = {'commentid': commentid};
+    var jsonData = null;
+    var response = await http
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postStatusComment", body: data);
+    if (response.statusCode == 200) {
+      jsonData = json.decode(response.body);
+      if (jsonData != null) {
+      }
+    } else {
+      print(response.body);
+    }
   }
 
   _showDialog() async {
@@ -214,30 +223,45 @@ class _IssuesCommentState extends State<IssuesComment> {
       barrierDismissible: false,
       child: new AlertDialog(
         title: Text('Comment'),
-        content: Container(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Stack(
-                  children: <Widget>[
-                    new ListView(
-                      shrinkWrap: true,
-                      children: [
-                        TextField(
-                          keyboardType: TextInputType.multiline,
-                          maxLines: null,
-                          controller: commentController,
-                          decoration: InputDecoration(
-                              hintText: "Comment", icon: Icon(Icons.comment)),
-                        ),
-                        _decideImageView(),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+        content: Form(
+          key: _formKey,
+          autovalidate: true,
+          child: Container(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Stack(
+                    children: <Widget>[
+                      new ListView(
+                        shrinkWrap: true,
+                        children: [
+                          TextFormField(
+                            keyboardType: TextInputType.multiline,
+                            maxLines: null,
+                            controller: commentController,
+                            decoration: InputDecoration(
+                                hintText: "Comment", icon: Icon(Icons.comment)),
+                            onSaved: (value)  => _commenttext = value,
+                            validator: (value){
+                              if (value.length < 4) {
+                                return "Enter Comment min 4 character";
+                              }
+                              if (value.isEmpty) {
+                                return "Enter Comment";
+                              }else{
+                                return null;
+                              }
+                            },
+                          ),
+                          _decideImageView(),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -245,11 +269,16 @@ class _IssuesCommentState extends State<IssuesComment> {
           new FlatButton(
             child: new Text('SAVE'),
             onPressed: () {
-              postcomment(news.toString(), imageFile);
-              print(news);
-              print(imageFile.path.split('/').last);
-              Navigator.pop(context);
-              showAlertupdatesuccess();
+              setState(() {
+                if(_formKey.currentState.validate()) {
+                  _formKey.currentState.save();
+                  postcomment(news.toString(), imageFile);
+                  // print(news);
+                  // print(imageFile.path.split('/').last);
+                  Navigator.pop(context);
+                  showAlertupdatesuccess();
+                }
+              });
             },
           ),
           new FlatButton(
@@ -329,11 +358,71 @@ class _IssuesCommentState extends State<IssuesComment> {
     var picture = await ImagePicker.pickImage(source: ImageSource.camera);
     this.setState(() {
       imageFile = picture;
-      base64Image = base64Encode(picture.readAsBytesSync());
     });
     Navigator.pop(context);
     Navigator.pop(context);
     _showDialog();
+  }
+
+  _showComment(int index) async {
+    await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      child: new AlertDialog(
+        title: Text('Comment : '+_comment[index].comment),
+        scrollable: true,
+        actions: <Widget>[
+          statusComment(index),
+          // new FlatButton(
+          //   child: new Text('UnActive'),
+          //   onPressed: () {
+          //     poststatuscomment(_comment[index].commentid.toString());
+          //     Navigator.pop(context);
+          //     Navigator.pop(context);
+          //   },
+          // ),
+          new FlatButton(
+            child: new Text('Close'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+        ],
+        content: _showImageView(index),
+      ),
+    );
+  }
+
+  statusComment(int index){
+    if(_comment[index].status == 1){
+      return new FlatButton(
+        child: new Text('UnActive'),
+        onPressed: () {
+          poststatuscomment(_comment[index].commentid.toString());
+          Navigator.pop(context);
+          Navigator.pop(context);
+        },
+      );
+    }else{
+      return null;
+    }
+  }
+
+  Widget _showImageView(int index) {
+    if (_comment[index].image == null) {
+      return Padding(
+          padding: EdgeInsets.only(top: 100),
+          child: Center(child: Text("No Image")));
+    } else {
+      return Padding(
+          padding: EdgeInsets.only(top: 60),
+          child: Center(
+              child: Image.network(
+                "http://cnmihelpdesk.rama.mahidol.ac.th/storage/"+_comment[index].image,
+                width: 300,
+                height: 300,
+              )));
+    }
   }
 
   @override
@@ -343,7 +432,7 @@ class _IssuesCommentState extends State<IssuesComment> {
         title: Align(
           alignment: Alignment.center,
           child: Padding(
-              padding: EdgeInsets.only(right: 40),
+              padding: EdgeInsets.only(right: 10),
               child: Text(_loading ? 'Loading...' : "Comment")),
         ),
         actions: [
@@ -477,11 +566,7 @@ class _IssuesCommentState extends State<IssuesComment> {
                 ),
               ),
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //       builder: (context) => IssuesNewDetail(_new[index])),
-                // );
+                _showComment(index);
               },
             );
           },

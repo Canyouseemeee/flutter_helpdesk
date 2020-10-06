@@ -28,380 +28,408 @@ class IssuesDeferDetail extends StatefulWidget {
 
 class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
   Defer defer;
-
   _IssuesDeferDetailState(this.defer);
 
   String statuscheckin;
-
+  String count;
+  DateTime time = DateTime.now();
+  bool _disposed = false;
+  bool _loading;
   var formatter = DateFormat.yMd().add_jm();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loading = true;
+    Timer(Duration(seconds: 1), () {
+      if (!_disposed)
+        setState(() {
+          time = time.add(Duration(seconds: -1));
+        });
+    });
+    getCommentCount();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _disposed = true;
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Detail"),
-          backgroundColor: Color(0xFF34558b),
-        ),
-        body: ListView(
+      appBar: AppBar(
+        title: Text(_loading ? 'Loading...' : "Detail"),
+        backgroundColor: Color(0xFF34558b),
+      ),
+      body: (_loading
+          ? new Center(
+          child: new CircularProgressIndicator(
+            backgroundColor: Colors.white70,
+          ))
+          : ListView(
           children: <Widget>[
-            // _heaaderImageSection(),
             _titleSection(context),
-          ],
-        ),
-        backgroundColor: Color(0xFF34558b));
+          ]
+      )
+      ),
+      backgroundColor: Color(0xFF34558b),
+    );
   }
 
   _heaaderImageSection() {
     if (defer.trackName.toString() == "HW") {
-      return Image.asset(
-        'assets/HW.png',
-        height: 30,
-        width: 30,
+      return Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Image.asset(
+          'assets/HW.png',
+          height: 40,
+          width: 40,
+        ),
       );
     } else {
-      return Image.asset(
-        'assets/SW.png',
-        height: 40,
-        width: 40,
+      return Padding(
+        padding: EdgeInsets.only(top: 20),
+        child: Image.asset(
+          'assets/SW.png',
+          height: 40,
+          width: 40,
+        ),
       );
     }
   }
 
+  getCommentCount() async {
+    Map data = {'issuesid': defer.issuesid.toString()};
+    var jsonData = null;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var response = await http
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
+    if (response.statusCode == 200) {
+      jsonData = json.decode(response.body);
+      if (jsonData != null) {
+        _loading = false;
+        sharedPreferences.setString('count', jsonData['count'].toString());
+        count = sharedPreferences.getString('count');
+      }
+    } else {
+      print(response.body);
+    }
+  }
+
   Widget _titleSection(context) => Padding(
-        padding: EdgeInsets.all(0),
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.only(left: 8),
-            child: Column(
+    padding: EdgeInsets.all(0),
+    child: Card(
+      child: Padding(
+        padding: EdgeInsets.only(left: 8),
+        child: Column(
+          children: <Widget>[
+            _heaaderImageSection(),
+            SizedBox(
+              height: 16,
+            ),
+            Row(
               children: <Widget>[
-                _heaaderImageSection(),
-                SizedBox(
-                  height: 16,
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Issuesid : " + defer.issuesid.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                Padding(
+                  padding: EdgeInsets.only(left: 150),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Issuesid : " + defer.issuesid.toString(),
+                      style: TextStyle(fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
-                SizedBox(
-                  height: 16,
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Subject = " + defer.subject.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "TrackName = " + defer.trackName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "SubTrackName = " + defer.subTrackName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "SubName = " + defer.name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Status = " + defer.issName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Priority = " + defer.ispName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Assignment = " + defer.assignment,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Tel = " + defer.tel.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Comname = " + defer.comname.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 16,
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Informer = " + defer.informer.toString(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Department = " + defer.dmName.toString(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Description = " + defer.description.toString(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Createby = " + defer.createby,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "UpdateBy = " + defer.updatedby,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Text(
-                            "Created = " +
-                                formatter.formatInBuddhistCalendarThai(
-                                    defer.createdAt),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Updated = " +
-                                formatter.formatInBuddhistCalendarThai(
-                                    defer.updatedAt),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Container(
+                Padding(
+                  padding: EdgeInsets.only(left: 50),
                   child: RaisedButton(
                     color: Colors.green,
                     onPressed: () {
-                      showAlertUpdate(defer.issuesid);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                IssuesCheckin(defer.issuesid.toString())),
+                      );
                     },
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(5.0),
+                      borderRadius: BorderRadius.circular(30.0),
                     ),
                     child: Text(
-                      "Checkin Issues",
+                      "CheckIn",
                       style: TextStyle(color: Colors.white70),
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          color: Color(0xFFf2f6f5),
+            SizedBox(
+              height: 16,
+            ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Subject = " + defer.subject,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "TrackName = " + defer.trackName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "SubTrackName = " + defer.subTrackName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "SubName = " + defer.name,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Status = " + defer.issName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Priority = " + defer.ispName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Assignment = " + defer.assignment,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Tel = " + defer.tel.toString(),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Comname = " + defer.comname.toString(),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Informer = " + defer.informer.toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Department = " + defer.dmName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Description = " + defer.description,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Createby = " + defer.createby,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "UpdateBy = " + defer.updatedby,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Text(
+                        "Created = " +
+                            formatter.formatInBuddhistCalendarThai(
+                                defer.createdAt),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Updated = " +
+                            formatter.formatInBuddhistCalendarThai(
+                                defer.updatedAt),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: 50.0,
+                margin: EdgeInsets.all(10),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 80.0),
+                child:
+                RaisedButton(
+                  color: Colors.pink,
+                  onPressed: () {
+                    setState(() {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                IssuesComment(defer.issuesid.toString())),
+                      );
+                    });
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                    BorderRadius.circular(30.0),
+                  ),
+                  child: Text(
+                    "Comment ("+count+")",
+                    style:
+                    TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      );
-
-  showAlertUpdate(int issuesid) async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("ต้องการปิดงานใช่หรือไม่ ?"),
-            actions: [
-              FlatButton(
-                onPressed: () {
-                  updatestatus(issuesid);
-                  Navigator.pop(context);
-                },
-                child: Text("ใช่"),
-              ),
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("ไม่"),
-              ),
-            ],
-          );
-        });
-  }
-
-  updatestatus(int issuesid) async {
-    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-    if (sharedPreferences.getString("token") != null) {
-      print(issuesid);
-      print(sharedPreferences.getString("name"));
-      Map data = {
-        'issuesid': issuesid.toString(),
-        'user': sharedPreferences.getString("name"),
-      };
-      var jsonData = null;
-      var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-updatestatus",
-          body: data);
-      if (response.statusCode == 200) {
-        jsonData = json.decode(response.body);
-        if (jsonData != null) {
-          showAlertsuccess();
-        }
-      } else {
-        print(response.body);
-      }
-    }
-  }
-
-  showAlertsuccess() async {
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("ปิดงานสำเร็จ"),
-            actions: [
-              FlatButton(
-                onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                          builder: (BuildContext context) => MainPage()),
-                      (Route<dynamic> route) => false);
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        });
-  }
+      ),
+    ),
+  );
 }
 
 //Todo new
@@ -416,9 +444,9 @@ class IssuesNewDetail extends StatefulWidget {
 
 class _IssuesNewDetailState extends State<IssuesNewDetail> {
   New news;
+  _IssuesNewDetailState(this.news);
   String statuscheckin;
   String count;
-  _IssuesNewDetailState(this.news);
   DateTime time = DateTime.now();
   bool _disposed = false;
   bool _loading;
@@ -494,7 +522,7 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response = await http
-        .post("http://10.57.34.148:8000/api/issues-getcountComment", body: data);
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -820,13 +848,45 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
 }
 
 //Todo Closed
-class IssuesClosedDetail extends StatelessWidget {
+class IssuesClosedDetail extends StatefulWidget {
   Closed closed;
-  final double _borderRadius = 24;
-
   IssuesClosedDetail(this.closed);
+  @override
+  _IssuesClosedDetailState createState() => _IssuesClosedDetailState(closed);
+}
 
+class _IssuesClosedDetailState extends State<IssuesClosedDetail> {
+  Closed closed;
+  _IssuesClosedDetailState(this.closed);
+
+  String statuscheckin;
+  String count;
+  DateTime time = DateTime.now();
+  bool _disposed = false;
+  bool _loading;
   var formatter = DateFormat.yMd().add_jm();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _loading = true;
+    Timer(Duration(seconds: 1), () {
+      if (!_disposed)
+        setState(() {
+          time = time.add(Duration(seconds: -1));
+        });
+    });
+    getCommentCount();
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    _disposed = true;
+    super.dispose();
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -861,282 +921,332 @@ class IssuesClosedDetail extends StatelessWidget {
     }
   }
 
+  getCommentCount() async {
+    Map data = {'issuesid': closed.issuesid.toString()};
+    var jsonData = null;
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var response = await http
+        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
+    if (response.statusCode == 200) {
+      jsonData = json.decode(response.body);
+      if (jsonData != null) {
+        _loading = false;
+        sharedPreferences.setString('count', jsonData['count'].toString());
+        count = sharedPreferences.getString('count');
+      }
+    } else {
+      print(response.body);
+    }
+  }
+
   Widget _titleSection(context) => Padding(
-        padding: EdgeInsets.all(0),
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.only(left: 8),
-            child: Column(
-              children: <Widget>[
-                _heaaderImageSection(),
-                SizedBox(
-                  height: 16,
-                ),
-                Align(
-                  alignment: Alignment.center,
-                  child: Text(
-                    "Issuesid : " + closed.issuesid.toString(),
-                    style: TextStyle(fontWeight: FontWeight.w500),
+    padding: EdgeInsets.all(0),
+    child: Card(
+      child: Padding(
+        padding: EdgeInsets.only(left: 8),
+        child: Column(
+          children: <Widget>[
+            _heaaderImageSection(),
+            SizedBox(
+              height: 16,
+            ),
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                "Issuesid : " + closed.issuesid.toString(),
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Subject = " + closed.subject,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
                   ),
-                ),
-                SizedBox(
-                  height: 16,
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Subject = " + closed.subject,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "TrackName = " + closed.trackName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "SubTrackName = " + closed.subTrackName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "SubName = " + closed.name,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Status = " + closed.issName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Priority = " + closed.ispName,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Assignment = " + closed.assignment,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Tel = " + closed.tel.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Comname = " + closed.comname.toString(),
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 16,
-                ),
-                Divider(
-                  thickness: 1,
-                  color: Colors.grey,
-                  endIndent: 10,
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Informer = " + closed.informer.toString(),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Department = " + closed.dmName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Description = " + closed.description,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Createby = " + closed.createby,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "UpdateBy = " + closed.updatedBy,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "ClosedBy = " + closed.closedBy,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Created = " +
-                                formatter.formatInBuddhistCalendarThai(
-                                    closed.createdAt),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Updated = " +
-                                formatter.formatInBuddhistCalendarThai(
-                                    closed.updatedAt),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text(
-                            "Closed = " +
-                                formatter.formatInBuddhistCalendarThai(
-                                    closed.createAt),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),
-          ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "TrackName = " + closed.trackName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "SubTrackName = " + closed.subTrackName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "SubName = " + closed.name,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Status = " + closed.issName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Priority = " + closed.ispName,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Assignment = " + closed.assignment,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Tel = " + closed.tel.toString(),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Comname = " + closed.comname.toString(),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Divider(
+              thickness: 1,
+              color: Colors.grey,
+              endIndent: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Informer = " + closed.informer.toString(),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Department = " + closed.dmName,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Description = " + closed.description,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Createby = " + closed.createby,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "UpdateBy = " + closed.updatedBy,
+                        style: TextStyle(
+                            fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "ClosedBy = " + closed.closedBy,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Created = " +
+                            formatter.formatInBuddhistCalendarThai(
+                                closed.createdAt),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Updated = " +
+                            formatter.formatInBuddhistCalendarThai(
+                                closed.updatedAt),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                      Text(
+                        "Closed = " +
+                            formatter.formatInBuddhistCalendarThai(
+                                closed.createAt),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            Center(
+              child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: 50.0,
+                margin: EdgeInsets.all(10),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 80.0),
+                child:
+                RaisedButton(
+                  color: Colors.pink,
+                  onPressed: () {
+                    setState(() {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) =>
+                                IssuesComment(closed.issuesid.toString())),
+                      );
+                    });
+                  },
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                    BorderRadius.circular(30.0),
+                  ),
+                  child: Text(
+                    "Comment ("+count+")",
+                    style:
+                    TextStyle(color: Colors.white70),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

@@ -13,6 +13,7 @@ class Checkin {
     this.checkinid,
     this.issuesid,
     this.status,
+    this.detail,
     this.createby,
     this.createdAt,
     this.updatedAt,
@@ -21,6 +22,7 @@ class Checkin {
   int checkinid;
   int issuesid;
   int status;
+  String detail;
   String createby;
   DateTime createdAt;
   DateTime updatedAt;
@@ -29,6 +31,7 @@ class Checkin {
     checkinid: json["Checkinid"],
     issuesid: json["Issuesid"],
     status: json["Status"],
+    detail: json["Detail"],
     createby: json["Createby"],
     createdAt: DateTime.parse(json["created_at"]),
     updatedAt: DateTime.parse(json["updated_at"]),
@@ -38,6 +41,7 @@ class Checkin {
     "Checkinid": checkinid,
     "Issuesid": issuesid,
     "Status": status,
+    "Detail": detail,
     "Createby": createby,
     "created_at": createdAt.toIso8601String(),
     "updated_at": updatedAt.toIso8601String(),

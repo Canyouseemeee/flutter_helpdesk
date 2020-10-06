@@ -47,7 +47,7 @@ class _MenuState extends State<Menu> {
       };
       var jsonData = null;
       var response = await http.post(
-          "http://10.57.34.148:8000/api/issues-delete",
+          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-delete",
           body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
