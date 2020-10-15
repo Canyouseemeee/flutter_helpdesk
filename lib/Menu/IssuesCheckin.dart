@@ -446,7 +446,8 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
               backgroundColor: Colors.white70,
             ))
           : _showJsondata()),
-      bottomNavigationBar: SafeArea(
+      bottomNavigationBar:
+      SafeArea(
           child: Container(
         height: 60,
         color: Colors.green,
@@ -724,4 +725,5 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       );
     }
   }
+
 }
