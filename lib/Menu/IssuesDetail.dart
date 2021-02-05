@@ -19,7 +19,6 @@ import '../main.dart';
 
 class IssuesDeferDetail extends StatefulWidget {
   Defer defer;
-
   IssuesDeferDetail(this.defer);
 
   @override
@@ -107,7 +106,7 @@ class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
+        .post("http://192.168.43.222:8000/api/issues-getcountComment", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -435,7 +434,6 @@ class _IssuesDeferDetailState extends State<IssuesDeferDetail> {
 //Todo new
 class IssuesNewDetail extends StatefulWidget {
   New news;
-
   IssuesNewDetail(this.news);
 
   @override
@@ -522,7 +520,7 @@ class _IssuesNewDetailState extends State<IssuesNewDetail> {
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
+        .post("http://192.168.43.222:8000/api/issues-getcountComment", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -926,7 +924,7 @@ class _IssuesClosedDetailState extends State<IssuesClosedDetail> {
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getcountComment", body: data);
+        .post("http://192.168.43.222:8000/api/issues-getcountComment", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {

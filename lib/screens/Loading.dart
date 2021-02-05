@@ -155,7 +155,7 @@ class _LoadingState extends State<Loading> {
     };
     var jsonData = null;
     var response = await http.post(
-        "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-deviceid",
+        "http://192.168.43.222:8000/api/issues-deviceid",
         body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
@@ -164,7 +164,7 @@ class _LoadingState extends State<Loading> {
           _loading = false;
           sharedPreferences.setString(
               "Deviceid", jsonData['deviceid'].toString());
-          // print(sharedPreferences.getString("Deviceid"));
+          print(sharedPreferences.getString("Deviceid"));
         });
         if (sharedPreferences.getString("Deviceid").replaceAll('[]', '') == '') {
           _showAlertDiolog(_deviceinfo);

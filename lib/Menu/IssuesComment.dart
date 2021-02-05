@@ -44,7 +44,7 @@ class _IssuesCommentState extends State<IssuesComment> {
     Map data = {
       'issuesid': news,
     };
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getComment";
+    const String url = "http://192.168.43.222:8000/api/issues-getComment";
     try {
       final response = await http.post(url, body: data);
       if (response.statusCode == 200) {
@@ -182,7 +182,7 @@ class _IssuesCommentState extends State<IssuesComment> {
         });
         Dio dio = new Dio();
         await dio
-            .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postComment", data: data)
+            .post("http://192.168.43.222:8000/api/issues-postComment", data: data)
             .then((response) => print(response))
             .catchError((error) => print(error));
       }
@@ -196,7 +196,7 @@ class _IssuesCommentState extends State<IssuesComment> {
         });
         Dio dio = new Dio();
         await dio
-            .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postComment", data: data)
+            .post("http://192.168.43.222:8000/api/issues-postComment", data: data)
             .then((response) => print(response))
             .catchError((error) => print(error));
       }
@@ -207,7 +207,7 @@ class _IssuesCommentState extends State<IssuesComment> {
     Map data = {'commentid': commentid};
     var jsonData = null;
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postStatusComment", body: data);
+        .post("http://192.168.43.222:8000/api/issues-postStatusComment", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {
@@ -418,7 +418,7 @@ class _IssuesCommentState extends State<IssuesComment> {
           padding: EdgeInsets.only(top: 60),
           child: Center(
               child: Image.network(
-                "http://cnmihelpdesk.rama.mahidol.ac.th/storage/"+_comment[index].image,
+                "http://192.168.43.222:8000/storage/"+_comment[index].image,
                 width: 300,
                 height: 300,
               )));

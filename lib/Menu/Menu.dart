@@ -47,7 +47,7 @@ class _MenuState extends State<Menu> {
       };
       var jsonData = null;
       var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-delete",
+          "http://192.168.43.222:8000/api/issues-delete",
           body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
@@ -108,7 +108,7 @@ class _MenuState extends State<Menu> {
     if (sharedPreferences.getString("token") != null) {
       var jsonData = null;
       var response = await http.get(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-lastedVersion");
+          "http://192.168.43.222:8000/api/issues-lastedVersion");
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
         if (jsonData != null) {
@@ -211,7 +211,6 @@ class _MenuState extends State<Menu> {
       _name = name;
       _team = team;
     });
-
     // print(imageAvatar());
     // print(sharedPreferences.getString("image").toString().substring(9).replaceAll("}]", ""));
   }
@@ -219,7 +218,7 @@ class _MenuState extends State<Menu> {
   Future<void> imageAvatar() async {
     sharedPreferences = await SharedPreferences.getInstance();
     // print(sharedPreferences.getString("image").toString().substring(8).replaceAll("}]", ""));
-    final String image = "http://cnmihelpdesk.rama.mahidol.ac.th/storage/" +
+    final String image = "http://192.168.43.222:8000/storage/" +
         sharedPreferences
             .getString("image")
             .toString()

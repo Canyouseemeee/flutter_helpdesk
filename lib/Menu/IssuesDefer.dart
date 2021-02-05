@@ -149,7 +149,7 @@ class _IssuesDeferState extends State<IssuesDefer> {
       };
       var jsonData = null;
       var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-delete",
+          "http://192.168.43.222:8000/api/issues-delete",
           body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);

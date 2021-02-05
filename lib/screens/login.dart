@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
     var jsonData = null;
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/login", body: data);
+        .post("http://192.168.43.222:8000/api/login", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       // print(jsonData);
@@ -169,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
     };
     var jsonData = null;
     var response = await http
-        .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-postlogin", body: data);
+        .post("http://192.168.43.222:8000/api/issues-postlogin", body: data);
     if (response.statusCode == 200) {
       jsonData = json.decode(response.body);
       if (jsonData != null) {

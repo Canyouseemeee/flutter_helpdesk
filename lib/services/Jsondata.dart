@@ -9,7 +9,7 @@ import 'package:flutter_helpdesk/Models/Closed.dart';
 class Jsondata {
 
   static Future<List<Closed>> getClosed() async {
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-closed";
+    const String url = "http://192.168.43.222:8000/api/issues-closed";
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -26,7 +26,7 @@ class Jsondata {
   }
 
   static Future<List<Defer>> getDefer() async {
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-defer";
+    const String url = "http://192.168.43.222:8000/api/issues-defer";
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -43,7 +43,7 @@ class Jsondata {
   }
 
   static Future<List<New>> getNew() async {
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-new";
+    const String url = "http://192.168.43.222:8000/api/issues-new";
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -61,7 +61,7 @@ class Jsondata {
   }
 
   static Future<List<IssuesAppointments>> getAppointments() async {
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/appointments";
+    const String url = "http://192.168.43.222:8000/api/appointments";
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {

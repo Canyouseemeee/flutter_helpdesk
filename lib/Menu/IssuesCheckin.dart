@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class IssuesCheckin extends StatefulWidget {
   String news;
-
   IssuesCheckin(this.news);
 
   @override
@@ -21,7 +20,6 @@ class IssuesCheckin extends StatefulWidget {
 
 class _IssuesCheckinState extends State<IssuesCheckin> {
   String news;
-
   _IssuesCheckinState(this.news);
 
   bool _loading;
@@ -45,7 +43,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
     Map data = {
       'issuesid': news,
     };
-    const String url = "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-getstatus";
+    const String url = "http://192.168.43.222:8000/api/issues-getstatus";
     try {
       final response = await http.post(url, body: data);
       if (response.statusCode == 200) {
@@ -208,7 +206,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       };
       var jsonData = null;
       var response = await http
-          .post("http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-poststatus", body: data);
+          .post("http://192.168.43.222:8000/api/issues-poststatus", body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
         if (jsonData != null) {}
@@ -229,7 +227,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       };
       var jsonData = null;
       var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-checkclosedstatus",
+          "http://192.168.43.222:8000/api/issues-checkclosedstatus",
           body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
@@ -251,7 +249,7 @@ class _IssuesCheckinState extends State<IssuesCheckin> {
       };
       var jsonData = null;
       var response = await http.post(
-          "http://cnmihelpdesk.rama.mahidol.ac.th/api/issues-checkkeepstatus",
+          "http://192.168.43.222:8000/api/issues-checkkeepstatus",
           body: data);
       if (response.statusCode == 200) {
         jsonData = json.decode(response.body);
